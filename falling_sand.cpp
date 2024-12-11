@@ -2,9 +2,15 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <cmath>
+#include <math.h>
+#include <SFML/System.hpp>
 #include <SFML/Graphics.hpp>
 #include <thread> // For sleep_for
 #include <chrono> // For time durations
+#include <algorithm>
+#include <tgmath.h> 
+
 
 using namespace std;
 
@@ -239,10 +245,43 @@ int density_bottom_right(int max_distance, const vector<vector<int>>& matrix_map
 }
 
 
-// static float SmoothingKernel(float radius, float dst)
-// {
-//     float value = max(0, radius * radius - dst * dst)
-// }
+static float SmoothingKernel(float radius, float dst)
+{
+    float volume = M_PI * pow(radius, 8) / 4;
+    float value = std::max(0.0f, radius * radius - dst * dst);
+    return value * value * value / volume;
+}
+
+float CalculateDensity(const sf::Vector2f& samplePoint, const std::vector<std::vector<int>>& matrix_map, float cellSize, float smoothingRadius) {
+    float density = 0.0f;
+    const float mass = 10.0f;
+
+    int num_rows = matrix_map.size();
+    int num_cols = matrix_map[0].size();
+
+    for (int row = 0; row < num_rows; row++) {
+        for (int col = 0; col < num_cols; col++) {
+            if (matrix_map[row][col] == 1) { // Check if the cell is active
+                // Calculate the center position of the cell
+                float cellX = col * cellSize + cellSize / 2.0f;
+                float cellY = row * cellSize + cellSize / 2.0f;
+
+                // Calculate the distance from the sample point
+                float dx = cellX - samplePoint.x;
+                float dy = cellY - samplePoint.y;
+                float dst = sqrt(dx * dx + dy * dy);
+
+                // Calculate influence using the smoothing kernel
+                float influence = SmoothingKernel(smoothingRadius, dst);
+
+                // Accumulate density
+                density += mass * influence;
+            }
+        }
+    }
+
+    return density;
+}
 
 
 int main() {
@@ -376,26 +415,28 @@ int main() {
 
                 // Calculate again, this time with density
                 num_neighbors = 0;
-                max_distance = 5;
+                max_distance = 10;
 
-                // Count neighbors
-                num_neighbors += density_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_left(max_distance, matrix_map, col, row);
-                num_neighbors += density_above(max_distance, matrix_map, col, row);
-                num_neighbors += density_below(max_distance, matrix_map, col, row);
+                // // Count neighbors
+                // num_neighbors += density_right(max_distance, matrix_map, col, row);
+                // num_neighbors += density_left(max_distance, matrix_map, col, row);
+                // num_neighbors += density_above(max_distance, matrix_map, col, row);
+                // num_neighbors += density_below(max_distance, matrix_map, col, row);
 
-                num_neighbors += density_top_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_top_left(max_distance, matrix_map, col, row);
-                num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
+                // num_neighbors += density_top_right(max_distance, matrix_map, col, row);
+                // num_neighbors += density_top_left(max_distance, matrix_map, col, row);
+                // num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
+                // num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
 
                 // Adjust the red color intensity based on right_neighbor count
+                // Calculate the sample point (center of the cell)
+                sf::Vector2f samplePoint(col * cellSize + cellSize / 2.0f, row * cellSize + cellSize / 2.0f);
+
+
+                float density = CalculateDensity(samplePoint, matrix_map, cellSize, max_distance);
                 
-                int transparency = std::min(25 + 10 * num_neighbors, 255); // Clamp between 100 and 255
+                int transparency = std::min(static_cast<int>(0 + 1000 * density), 255);
                 cellColor = sf::Color(255, 255, 255, transparency);
-
-                
-
 
                 // Set cell color
                 cell.setFillColor(cellColor);
