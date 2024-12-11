@@ -393,49 +393,49 @@ int main() {
                 num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
                 num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
 
-                // Conway's game of life
-                // Determine cell state based on number of neighbors
-                if (matrix_map[row][col] == 1) { // Cell is currently alive
-                    if (num_neighbors == 2 || num_neighbors == 3) {
-                        cellColor = sf::Color(255, 255, 255, 255); // Stay alive
-                        next_matrix_map[row][col] = 1;
-                    } else {
-                        cellColor = sf::Color(0, 0, 0, 255); // Death by isolation or overcrowding
-                        next_matrix_map[row][col] = 0;
-                    }
-                } else { // Cell is currently dead
-                    if (num_neighbors == 3) {
-                        cellColor = sf::Color(255, 255, 255, 255); // Birth
-                        next_matrix_map[row][col] = 1;
-                    } else {
-                        cellColor = sf::Color(0, 0, 0, 255); // Remain dead
-                        next_matrix_map[row][col] = 0;
-                    }
-                }
+                // // Conway's game of life
+                // // Determine cell state based on number of neighbors
+                // if (matrix_map[row][col] == 1) { // Cell is currently alive
+                //     if (num_neighbors == 2 || num_neighbors == 3) {
+                //         cellColor = sf::Color(255, 255, 255, 255); // Stay alive
+                //         next_matrix_map[row][col] = 1;
+                //     } else {
+                //         cellColor = sf::Color(0, 0, 0, 255); // Death by isolation or overcrowding
+                //         next_matrix_map[row][col] = 0;
+                //     }
+                // } else { // Cell is currently dead
+                //     if (num_neighbors == 3) {
+                //         cellColor = sf::Color(255, 255, 255, 255); // Birth
+                //         next_matrix_map[row][col] = 1;
+                //     } else {
+                //         cellColor = sf::Color(0, 0, 0, 255); // Remain dead
+                //         next_matrix_map[row][col] = 0;
+                //     }
+                // }
 
                 // Calculate again, this time with density
                 num_neighbors = 0;
-                max_distance = 10;
+                max_distance = 2;
 
-                // // Count neighbors
-                // num_neighbors += density_right(max_distance, matrix_map, col, row);
-                // num_neighbors += density_left(max_distance, matrix_map, col, row);
-                // num_neighbors += density_above(max_distance, matrix_map, col, row);
-                // num_neighbors += density_below(max_distance, matrix_map, col, row);
+                // Count neighbors
+                num_neighbors += density_right(max_distance, matrix_map, col, row);
+                num_neighbors += density_left(max_distance, matrix_map, col, row);
+                num_neighbors += density_above(max_distance, matrix_map, col, row);
+                num_neighbors += density_below(max_distance, matrix_map, col, row);
 
-                // num_neighbors += density_top_right(max_distance, matrix_map, col, row);
-                // num_neighbors += density_top_left(max_distance, matrix_map, col, row);
-                // num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
-                // num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
+                num_neighbors += density_top_right(max_distance, matrix_map, col, row);
+                num_neighbors += density_top_left(max_distance, matrix_map, col, row);
+                num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
+                num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
 
                 // Adjust the red color intensity based on right_neighbor count
                 // Calculate the sample point (center of the cell)
-                sf::Vector2f samplePoint(col * cellSize + cellSize / 2.0f, row * cellSize + cellSize / 2.0f);
+                // sf::Vector2f samplePoint(col * cellSize + cellSize / 2.0f, row * cellSize + cellSize / 2.0f);
 
 
-                float density = CalculateDensity(samplePoint, matrix_map, cellSize, max_distance);
+                // float density = CalculateDensity(samplePoint, matrix_map, cellSize, max_distance);
                 
-                int transparency = std::min(static_cast<int>(0 + 1000 * density), 255);
+                int transparency = std::min((25 + 10 * num_neighbors), 255);
                 cellColor = sf::Color(255, 255, 255, transparency);
 
                 // Set cell color
