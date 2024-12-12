@@ -12,17 +12,10 @@
 #include <tgmath.h> 
 #include <cstdlib>
 #include <random>
+#include <set>
 
 
 using namespace std;
-
-
-std::vector<std::vector<int>> createMatrix(int rows, int cols) {
-    // Initialize a matrix of size rows x cols with all values set to 0
-    std::vector<std::vector<int>> matrix(rows, std::vector<int>(cols, 0));
-
-    return matrix;
-}
 
 void print_map(vector<vector<int>> matrix_map) {
     int num_rows = matrix_map.size();
@@ -95,9 +88,6 @@ int FindDirectNeighbors(const vector<vector<int>>& matrix_map, int sample_point_
     return num_neighbors;
 }
 
-
-
-
 float CalculateDistance(int sample_point_x, int sample_point_y, int cell_x, int cell_y)
 {
     float dx = cell_x - sample_point_x;
@@ -156,6 +146,105 @@ int random_int_gen(int min, int max) {
     return dist(gen);
 }
 
+class Generator {
+    public:
+        int xpos;
+        int ypos;
+        sf::Color GeneratorColor;
+        int prev_xdir = 0;
+        int prev_ydir = 0;
+
+        int prev_xpos = 0;
+        int prev_ypos = 0;
+        const vector<vector<int>>& matrix_map;
+
+        int grid_height = matrix_map.size();
+        int grid_width = matrix_map[0].size();   
+
+        int wander_chance = 25;
+
+        Generator(const vector<vector<int>>& matrix_map, int x, int y, sf::Color color) : matrix_map(matrix_map), xpos(x), ypos(y), GeneratorColor(color) {}
+
+        // Randomly walk
+        void walk() {
+            int change_dir_roll = random_int_gen(0, 100);
+            if ((change_dir_roll < wander_chance) || (prev_xdir + prev_ydir == 0)){
+                random_walk();
+
+            // Continue in the same direction
+            } else {
+                // Calculate the new position
+                int new_x = xpos + prev_xdir;
+                int new_y = ypos + prev_ydir;
+
+                // Clamp the new position to ensure it stays within bounds
+                xpos = std::clamp(new_x, 0, grid_width - 1);
+                ypos = std::clamp(new_y, 0, grid_height - 1);
+            }
+        }
+
+        void random_walk() {
+            // Generate relative movement in the range [-1, 1]
+            int x_move = random_int_gen(-1, 1);
+            int y_move = random_int_gen(-1, 1);
+
+            // Calculate new position
+            int new_x = xpos + x_move;
+            int new_y = ypos + y_move;
+
+            // Clamp the new position to ensure it stays within bounds
+            xpos = std::clamp(new_x, 0, grid_width - 1);
+            ypos = std::clamp(new_y, 0, grid_height - 1);
+
+            // Update the previous direction
+            prev_xdir = x_move;
+            prev_ydir = y_move;
+
+        }
+
+        void create_life(std::vector<std::vector<int>>& matrix_map) {
+            int num_rows = matrix_map.size();
+            int num_cols = matrix_map[0].size();
+
+            // Offsets for neighbors
+            int offsets[8][2] = {
+                {-1, -1}, {-1, 0}, {-1, +1}, // Top-left, Top, Top-right
+                { 0, -1},          { 0, +1}, // Left,        , Right
+                {+1, -1}, {+1, 0}, {+1, +1}  // Bottom-left, Bottom, Bottom-right
+            };
+
+            // First loop: Check for neighboring cells with value 2
+            for (const auto& offset : offsets) {
+                int neighbor_x = xpos + offset[0];
+                int neighbor_y = ypos + offset[1];
+
+                // Ensure the neighbor is within bounds
+                if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
+                    if (matrix_map[neighbor_y][neighbor_x] == 2) {
+                        // Abort the function if a neighbor with value 2 is found
+                        return;
+                    }
+                }
+            }
+
+            // Second loop: Set neighbors to 1 if they are 0
+            for (const auto& offset : offsets) {
+                int neighbor_x = xpos + offset[0];
+                int neighbor_y = ypos + offset[1];
+
+                // Ensure the neighbor is within bounds
+                if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
+                    if (matrix_map[neighbor_y][neighbor_x] == 0) {
+                        matrix_map[neighbor_y][neighbor_x] = 1;
+                    }
+                }
+            }
+        }
+
+                
+
+};
+
 class Ant {
     public:
         int xpos;
@@ -174,6 +263,9 @@ class Ant {
         int wander_chance = 25;
         int sensing_radius = 5;
 
+        int lifetime = 100;
+        int food = 0;
+
         Ant(const vector<vector<int>>& matrix_map, int x, int y, sf::Color color) : matrix_map(matrix_map), xpos(x), ypos(y), antColor(color) {}
 
         bool evaluate_sensed_gradient(){
@@ -183,7 +275,6 @@ class Ant {
 
             if (density > 0.1){
                 sensed_gradient = true;
-                cout << "Density " << density << endl;
             } else {
                 sensed_gradient = false;
             }
@@ -191,6 +282,19 @@ class Ant {
             return sensed_gradient;
         }
 
+        Ant make_babies(){
+            // Set the position for the baby in the Ant's previous position
+            int baby_xpos = std::clamp(prev_xpos, 1, grid_width - 2);
+            int baby_ypos = std::clamp(prev_ypos, 1, grid_height - 2);
+
+            // Create a new Ant object
+            Ant antObj(matrix_map, baby_xpos, baby_ypos, sf::Color(0, 255, 0, 255));
+
+            // Reset the food
+            food = 0;
+
+            return antObj;
+        }
 
         void walk()
         {   
@@ -198,7 +302,6 @@ class Ant {
                 walk_to_food();
 
             } else if (evaluate_sensed_gradient()) {
-                cout << "\tSensed Gradient!" << endl;
                 int walk_toward_food_chance = random_int_gen(0, 100);
                 if (walk_toward_food_chance > wander_chance){
                     walk_toward_gradient();
@@ -269,7 +372,6 @@ class Ant {
                 }
             }
         }
-
 
         void random_walk() {
             // Generate relative movement in the range [-1, 1]
@@ -351,10 +453,16 @@ class Ant {
             prev_xdir = best_x - xpos;
             prev_ydir = best_y - ypos;
 
-            std::cout << "Ant moved to position (" << xpos << ", " << ypos << ") with density: " << max_density << std::endl;
         }
 
 };
+
+std::vector<std::vector<int>> createMatrix(int rows, int cols) {
+    // Initialize a matrix of size rows x cols with all values set to 0
+    std::vector<std::vector<int>> matrix(rows, std::vector<int>(cols, 0));
+
+    return matrix;
+}
 
 int main() {
 
@@ -366,6 +474,8 @@ int main() {
 
     // Matrix dimensions
     const int cellSize = 15; // Size of each cell in pixels
+
+    int previous_pop = 0;
 
     // Create the SFML window
     sf::RenderWindow window(sf::VideoMode(num_cols * cellSize, num_rows * cellSize), "Falling Sand");
@@ -380,7 +490,33 @@ int main() {
     );
     bool gamePause = false;
 
-    Ant antObj1(matrix_map, 25, 25, sf::Color(0, 255, 0, 255));
+    // Create multiple ants
+    std::list<Ant> ant_list;
+
+    for (int i = 0; i < 10; i++) { // Correct initialization of the loop
+        int randx = random_int_gen(0, num_cols - 1); // Ensure the range is valid
+        int randy = random_int_gen(0, num_rows - 1);
+
+        // Create a new Ant object
+        Ant antObj(matrix_map, randx, randy, sf::Color(0, 255, 0, 255));
+
+        // Add the Ant object to the list
+        ant_list.push_back(antObj);
+    }
+
+    // Create multiple Generators
+    std::list<Generator> generator_list;
+
+    for (int i = 0; i < 5; i++) { // Correct initialization of the loop
+        int randx = random_int_gen(0, num_cols - 1); // Ensure the range is valid
+        int randy = random_int_gen(0, num_rows - 1);
+
+        // Create a new Ant object
+        Generator genObj(matrix_map, randx, randy, sf::Color(255, 0, 255, 255));
+
+        // Add the Ant object to the list
+        generator_list.push_back(genObj);
+    }
 
     while (window.isOpen()) {
         // Handle events
@@ -498,12 +634,26 @@ int main() {
                     cellColor = sf::Color(0, 0, 255, transparency);
                 }
 
-                
-                if ((col == antObj1.xpos) && (row == antObj1.ypos)){
-                    cellColor = antObj1.antColor;
-                    next_matrix_map[row][col] = 0;
-                    
-                } 
+                for (Ant& ant : ant_list) {
+                    if ((col == ant.xpos) && (row == ant.ypos)){
+                        cellColor = ant.antColor;
+                        if (matrix_map[row][col] == 1){
+                            ant.food += 1;
+                        }
+                        matrix_map[row][col] == 2;
+
+
+                        next_matrix_map[row][col] = 0;
+                        
+                    } 
+                }
+
+                for (Generator& gen : generator_list) {
+                    if ((col == gen.xpos) && (row == gen.ypos)){
+                        cellColor = gen.GeneratorColor;
+                        gen.create_life(matrix_map);
+                    } 
+                }
 
                 // Set cell color
                 cell.setFillColor(cellColor);
@@ -521,12 +671,88 @@ int main() {
 
         matrix_map = next_matrix_map;
 
-        if (!gamePause){
-            antObj1.walk(); // Move the ant
+        if (!gamePause) {
+            // Track occupied positions
+            std::set<std::pair<int, int>> occupied_positions;
+
+            // Populate initial positions
+            for (const Ant& ant : ant_list) {
+                occupied_positions.insert({ant.xpos, ant.ypos});
+            }
+
+            // Iterate over the list of ants using an iterator
+            for (auto it = ant_list.begin(); it != ant_list.end(); ) {
+                Ant& ant = *it;
+
+                // Remove the current position from the occupied set
+                occupied_positions.erase({ant.xpos, ant.ypos});
+
+                // Make the ant walk
+                ant.walk();
+
+                // Check if the new position is already occupied
+                if (occupied_positions.find({ant.xpos, ant.ypos}) != occupied_positions.end()) {
+                    // Revert to previous position to prevent overlap
+                    ant.xpos = ant.prev_xpos;
+                    ant.ypos = ant.prev_ypos;
+                } else {
+                    // Update the occupied positions set with the new position
+                    occupied_positions.insert({ant.xpos, ant.ypos});
+                }
+
+                // Check if the ant has enough food to create a new ant
+                if (ant.food >= 25) {
+                    // Find a free position for the baby ant
+                    std::pair<int, int> baby_position;
+                    bool position_found = false;
+                    for (int dx = -1; dx <= 1 && !position_found; ++dx) {
+                        for (int dy = -1; dy <= 1 && !position_found; ++dy) {
+                            int new_x = ant.xpos + dx;
+                            int new_y = ant.ypos + dy;
+                            if (occupied_positions.find({new_x, new_y}) == occupied_positions.end()) {
+                                baby_position = {new_x, new_y};
+                                position_found = true;
+                            }
+                        }
+                    }
+
+                    if (position_found) {
+                        Ant babyAnt = ant.make_babies();
+                        babyAnt.xpos = baby_position.first;
+                        babyAnt.ypos = baby_position.second;
+                        ant_list.push_back(babyAnt);
+                        occupied_positions.insert(baby_position);
+                    }
+                }
+
+                // Decrease the ant's lifetime
+                ant.lifetime -= 1;
+
+                // Remove the ant if its lifetime has expired
+                if (ant.lifetime <= 0) {
+                    it = ant_list.erase(it); // Safely remove the ant and update the iterator
+                } else {
+                    ++it; // Move to the next ant
+                }
+
+                if (previous_pop != ant_list.size()) {
+                    cout << "Population: " << ant_list.size() << endl;
+                    previous_pop = ant_list.size();
+                }
+            
+            }
+
+            // Make each generator walk
+            for (Generator& gen : generator_list) {
+                gen.walk();
+            }
         }
+
         
         // Display the updated window
         window.display();
+
+        
 
 
         // // Make each cell with sand fall one row
