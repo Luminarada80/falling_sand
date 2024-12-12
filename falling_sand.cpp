@@ -244,6 +244,15 @@ int density_bottom_right(int max_distance, const vector<vector<int>>& matrix_map
     return num_neighbors;
 }
 
+float CalculateDistance(int sample_point_x, int sample_point_y, int cell_x, int cell_y)
+{
+    float dx = cell_x - sample_point_x;
+    float dy = cell_y - sample_point_y;
+    float dst = sqrt(dx * dx + dy * dy);
+
+    return dst;
+}
+
 
 static float SmoothingKernel(float radius, float dst)
 {
@@ -252,34 +261,29 @@ static float SmoothingKernel(float radius, float dst)
     return value * value * value / volume;
 }
 
-float CalculateDensity(const sf::Vector2f& samplePoint, const std::vector<std::vector<int>>& matrix_map, float cellSize, float smoothingRadius) {
+float CalculateDensity(const vector<vector<int>>& matrix_map, int col, int row) {
     float density = 0.0f;
-    const float mass = 10.0f;
+    const float mass = 1000.0f;
+    int smoothing_radius = 10;
 
     int num_rows = matrix_map.size();
     int num_cols = matrix_map[0].size();
 
-    for (int row = 0; row < num_rows; row++) {
-        for (int col = 0; col < num_cols; col++) {
-            if (matrix_map[row][col] == 1) { // Check if the cell is active
-                // Calculate the center position of the cell
-                float cellX = col * cellSize + cellSize / 2.0f;
-                float cellY = row * cellSize + cellSize / 2.0f;
+    
+    float influence = 0;
+    float distance = 0;
+    for (int test_row = 0; test_row < num_rows; test_row++) {
+        for (int test_col = 0; test_col < num_cols; test_col++) {
+            if (matrix_map[test_row][test_col] == 1){
+                float distance = CalculateDistance(test_col, test_row, col, row);
 
-                // Calculate the distance from the sample point
-                float dx = cellX - samplePoint.x;
-                float dy = cellY - samplePoint.y;
-                float dst = sqrt(dx * dx + dy * dy);
-
-                // Calculate influence using the smoothing kernel
-                float influence = SmoothingKernel(smoothingRadius, dst);
-
-                // Accumulate density
-                density += mass * influence;
+                influence += SmoothingKernel(smoothing_radius, distance);
             }
         }
     }
 
+    density = mass * influence;
+    
     return density;
 }
 
@@ -383,15 +387,15 @@ int main() {
                 int max_distance = 1; // Typical Game of Life uses direct neighbors only
 
                 // Count neighbors
-                num_neighbors += density_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_left(max_distance, matrix_map, col, row);
-                num_neighbors += density_above(max_distance, matrix_map, col, row);
-                num_neighbors += density_below(max_distance, matrix_map, col, row);
+                // num_neighbors += density_right(max_distance, matrix_map, col, row);
+                // num_neighbors += density_left(max_distance, matrix_map, col, row);
+                // num_neighbors += density_above(max_distance, matrix_map, col, row);
+                // num_neighbors += density_below(max_distance, matrix_map, col, row);
 
-                num_neighbors += density_top_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_top_left(max_distance, matrix_map, col, row);
-                num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
+                // num_neighbors += density_top_right(max_distance, matrix_map, col, row);
+                // num_neighbors += density_top_left(max_distance, matrix_map, col, row);
+                // num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
+                // num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
 
                 // // Conway's game of life
                 // // Determine cell state based on number of neighbors
@@ -412,31 +416,12 @@ int main() {
                 //         next_matrix_map[row][col] = 0;
                 //     }
                 // }
-
-                // Calculate again, this time with density
-                num_neighbors = 0;
-                max_distance = 2;
-
-                // Count neighbors
-                num_neighbors += density_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_left(max_distance, matrix_map, col, row);
-                num_neighbors += density_above(max_distance, matrix_map, col, row);
-                num_neighbors += density_below(max_distance, matrix_map, col, row);
-
-                num_neighbors += density_top_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_top_left(max_distance, matrix_map, col, row);
-                num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
-                num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
-
-                // Adjust the red color intensity based on right_neighbor count
-                // Calculate the sample point (center of the cell)
-                // sf::Vector2f samplePoint(col * cellSize + cellSize / 2.0f, row * cellSize + cellSize / 2.0f);
-
-
-                // float density = CalculateDensity(samplePoint, matrix_map, cellSize, max_distance);
                 
-                int transparency = std::min((25 + 10 * num_neighbors), 255);
-                cellColor = sf::Color(255, 255, 255, transparency);
+                float density = CalculateDensity(matrix_map, col, row);
+
+                int transparency = std::min(static_cast<int>(15 + density), 255);
+                cellColor = sf::Color(0, 0, 255, transparency);
+                
 
                 // Set cell color
                 cell.setFillColor(cellColor);
