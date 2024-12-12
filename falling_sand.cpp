@@ -14,49 +14,13 @@
 
 using namespace std;
 
-vector<vector<int>> map_matrix() {
-    vector<vector<int>> matrix{
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-    };
+
+std::vector<std::vector<int>> createMatrix(int rows, int cols) {
+    // Initialize a matrix of size rows x cols with all values set to 0
+    std::vector<std::vector<int>> matrix(rows, std::vector<int>(cols, 0));
 
     return matrix;
-};
+}
 
 void print_map(vector<vector<int>> matrix_map) {
     int num_rows = matrix_map.size();
@@ -97,152 +61,38 @@ vector<vector<int>> ones_fall(vector<vector<int>> matrix_map) {
     return matrix_map;
 };
 
-int density_right(int max_distance, const vector<vector<int>>& matrix_map, int col, int row) {
-    int num_neighbors = 0;
-    int num_cols = matrix_map[0].size();
-
-    for (int dist = 1; dist <= max_distance; dist++) {
-        int new_col = col + dist;
-        if (new_col < num_cols) { // Ensure within bounds
-            if (matrix_map[row][new_col] == 1) {
-                num_neighbors++;
-            }
-        } else {
-            break; // Out of bounds
-        }
-    }
-    return num_neighbors;
-}
-
-
-int density_left(int max_distance, const vector<vector<int>>& matrix_map, int col, int row) {
+int FindDirectNeighbors(const vector<vector<int>>& matrix_map, int sample_point_x, int sample_point_y) {
+    std::vector<std::pair<int, int>> neighbors;
     int num_neighbors = 0;
 
-    for (int dist = 1; dist <= max_distance; dist++) {
-        int new_col = col - dist;
-        if (new_col >= 0) { // Ensure within bounds
-            if (matrix_map[row][new_col] == 1) {
-                num_neighbors++;
-            }
-        } else {
-            break; // Out of bounds
-        }
-    }
-    return num_neighbors;
-}
-
-
-int density_above(int max_distance, const vector<vector<int>>& matrix_map, int col, int row) {
-    int num_neighbors = 0;
-
-    for (int dist = 1; dist <= max_distance; dist++) {
-        int new_row = row - dist;
-        if (new_row >= 0) { // Ensure within bounds
-            if (matrix_map[new_row][col] == 1) {
-                num_neighbors++;
-            }
-        } else {
-            break; // Out of bounds
-        }
-    }
-    return num_neighbors;
-}
-
-
-int density_below(int max_distance, const vector<vector<int>>& matrix_map, int col, int row) {
-    int num_neighbors = 0;
-    int num_rows = matrix_map.size();
-
-    for (int dist = 1; dist <= max_distance; dist++) {
-        int new_row = row + dist;
-        if (new_row < num_rows) { // Ensure within bounds
-            if (matrix_map[new_row][col] == 1) {
-                num_neighbors++;
-            }
-        } else {
-            break; // Out of bounds
-        }
-    }
-    return num_neighbors;
-}
-
-
-
-int density_top_right(int max_distance, const vector<vector<int>>& matrix_map, int col, int row) {
-    int num_neighbors = 0;
     int num_rows = matrix_map.size();
     int num_cols = matrix_map[0].size();
 
-    for (int dist = 1; dist <= max_distance; dist++) {
-        int new_row = row - dist;
-        int new_col = col + dist;
-        if (new_row >= 0 && new_col < num_cols) {
-            if (matrix_map[new_row][new_col] == 1) {
+    // Offsets for neighbors
+    int offsets[8][2] = {
+        {-1, -1}, {-1, 0}, {-1, +1}, // Top-left, Top, Top-right
+        { 0, -1},          { 0, +1}, // Left,        , Right
+        {+1, -1}, {+1, 0}, {+1, +1}  // Bottom-left, Bottom, Bottom-right
+    };
+
+    // Check all neighbors
+    for (const auto& offset : offsets) {
+        int neighbor_x = sample_point_x + offset[0];
+        int neighbor_y = sample_point_y + offset[1];
+
+        // Check if neighbor is within bounds
+        if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
+            // Add neighbor coordinates to the list
+            neighbors.emplace_back(neighbor_x, neighbor_y);
+            if (matrix_map[neighbor_y][neighbor_x] == 1) {
                 num_neighbors++;
             }
-        } else {
-            break; // Stop if out of bounds
         }
     }
+
     return num_neighbors;
 }
 
-int density_top_left(int max_distance, const vector<vector<int>>& matrix_map, int col, int row) {
-    int num_neighbors = 0;
-    int num_rows = matrix_map.size();
-    int num_cols = matrix_map[0].size();
-
-    for (int dist = 1; dist <= max_distance; dist++) {
-        int new_row = row - dist;
-        int new_col = col - dist;
-        if (new_row >= 0 && new_col >= 0) {
-            if (matrix_map[new_row][new_col] == 1) {
-                num_neighbors++;
-            }
-        } else {
-            break; // Stop if out of bounds
-        }
-    }
-    return num_neighbors;
-}
-
-int density_bottom_left(int max_distance, const vector<vector<int>>& matrix_map, int col, int row) {
-    int num_neighbors = 0;
-    int num_rows = matrix_map.size();
-    int num_cols = matrix_map[0].size();
-
-    for (int dist = 1; dist <= max_distance; dist++) {
-        int new_row = row + dist;
-        int new_col = col - dist;
-        if (new_row < num_rows && new_col >= 0) {
-            if (matrix_map[new_row][new_col] == 1) {
-                num_neighbors++;
-            }
-        } else {
-            break; // Stop if out of bounds
-        }
-    }
-    return num_neighbors;
-}
-
-int density_bottom_right(int max_distance, const vector<vector<int>>& matrix_map, int col, int row) {
-    int num_neighbors = 0;
-    int num_rows = matrix_map.size();
-    int num_cols = matrix_map[0].size();
-
-    for (int dist = 1; dist <= max_distance; dist++) {
-        int new_row = row + dist;
-        int new_col = col + dist;
-        if (new_row < num_rows && new_col < num_cols) {
-            if (matrix_map[new_row][new_col] == 1) {
-                num_neighbors++;
-            }
-        } else {
-            break; // Stop if out of bounds
-        }
-    }
-    return num_neighbors;
-}
 
 float CalculateDistance(int sample_point_x, int sample_point_y, int cell_x, int cell_y)
 {
@@ -269,21 +119,30 @@ float CalculateDensity(const vector<vector<int>>& matrix_map, int col, int row) 
     int num_rows = matrix_map.size();
     int num_cols = matrix_map[0].size();
 
-    
-    float influence = 0;
-    float distance = 0;
-    for (int test_row = 0; test_row < num_rows; test_row++) {
-        for (int test_col = 0; test_col < num_cols; test_col++) {
-            if (matrix_map[test_row][test_col] == 1){
+    float influence = 0.0f;
+
+    // Calculate bounds for the smoothing radius
+    int min_row = std::max(0, row - smoothing_radius);
+    int max_row = std::min(num_rows - 1, row + smoothing_radius);
+    int min_col = std::max(0, col - smoothing_radius);
+    int max_col = std::min(num_cols - 1, col + smoothing_radius);
+
+    // Iterate only within the smoothing radius
+    for (int test_row = min_row; test_row <= max_row; test_row++) {
+        for (int test_col = min_col; test_col <= max_col; test_col++) {
+            if (matrix_map[test_row][test_col] == 1) {
                 float distance = CalculateDistance(test_col, test_row, col, row);
 
-                influence += SmoothingKernel(smoothing_radius, distance);
+                // Only consider points within the smoothing radius
+                if (distance <= smoothing_radius) {
+                    influence += SmoothingKernel(smoothing_radius, distance);
+                }
             }
         }
     }
 
     density = mass * influence;
-    
+
     return density;
 }
 
@@ -291,13 +150,13 @@ float CalculateDensity(const vector<vector<int>>& matrix_map, int col, int row) 
 int main() {
 
     // Initialize the matrix
-    vector<vector<int>> matrix_map = map_matrix();
+    vector<vector<int>> matrix_map = createMatrix(75, 150);
 
     int num_rows = matrix_map.size();
     int num_cols = matrix_map[0].size();
 
     // Matrix dimensions
-    const int cellSize = 25; // Size of each cell in pixels
+    const int cellSize = 15; // Size of each cell in pixels
 
     // Create the SFML window
     sf::RenderWindow window(sf::VideoMode(num_cols * cellSize, num_rows * cellSize), "Falling Sand");
@@ -310,6 +169,7 @@ int main() {
     std::vector<std::vector<std::chrono::time_point<std::chrono::steady_clock>>> lastInteractionTime(
         num_rows, std::vector<std::chrono::time_point<std::chrono::steady_clock>>(num_cols, std::chrono::steady_clock::now())
     );
+    bool gamePause = false;
 
     while (window.isOpen()) {
         // Handle events
@@ -319,8 +179,14 @@ int main() {
             // Handle closing the window
             if (event.type == sf::Event::Closed)
                 window.close();
+            
+            // Toggle gamePause with Space key
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
+                gamePause = !gamePause;
+            }
 
         }
+
 
         // Handle mouse click events
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
@@ -346,6 +212,7 @@ int main() {
                     lastInteractionTime[row][col] = now;
                 }
             }
+
         } else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
             // Get mouse position relative to the window
             sf::Vector2i mousePos = sf::Mouse::getPosition(window);
@@ -386,48 +253,51 @@ int main() {
                 int num_neighbors = 0;
                 int max_distance = 1; // Typical Game of Life uses direct neighbors only
 
-                // Count neighbors
-                // num_neighbors += density_right(max_distance, matrix_map, col, row);
-                // num_neighbors += density_left(max_distance, matrix_map, col, row);
-                // num_neighbors += density_above(max_distance, matrix_map, col, row);
-                // num_neighbors += density_below(max_distance, matrix_map, col, row);
+                if (!gamePause) { 
+                    // Count neighbors
+                    num_neighbors = FindDirectNeighbors(matrix_map, col, row);
 
-                // num_neighbors += density_top_right(max_distance, matrix_map, col, row);
-                // num_neighbors += density_top_left(max_distance, matrix_map, col, row);
-                // num_neighbors += density_bottom_right(max_distance, matrix_map, col, row);
-                // num_neighbors += density_bottom_left(max_distance, matrix_map, col, row);
+                    // Conway's game of life
+                    // Determine cell state based on number of neighbors
+                    if (matrix_map[row][col] == 1) { // Cell is currently alive
+                        if (num_neighbors == 2 || num_neighbors == 3) {
+                            cellColor = sf::Color(255, 255, 255, 255); // Stay alive
+                            next_matrix_map[row][col] = 1;
+                        } else {
+                            cellColor = sf::Color(0, 0, 0, 255); // Death by isolation or overcrowding
+                            next_matrix_map[row][col] = 0;
+                        }
+                    } else { // Cell is currently dead
+                        if (num_neighbors == 3) {
+                            cellColor = sf::Color(255, 255, 255, 255); // Birth
+                            next_matrix_map[row][col] = 1;
+                        } else {
+                            cellColor = sf::Color(0, 0, 0, 255); // Remain dead
+                            next_matrix_map[row][col] = 0;
+                        }
+                    }
+                }
 
-                // // Conway's game of life
-                // // Determine cell state based on number of neighbors
-                // if (matrix_map[row][col] == 1) { // Cell is currently alive
-                //     if (num_neighbors == 2 || num_neighbors == 3) {
-                //         cellColor = sf::Color(255, 255, 255, 255); // Stay alive
-                //         next_matrix_map[row][col] = 1;
-                //     } else {
-                //         cellColor = sf::Color(0, 0, 0, 255); // Death by isolation or overcrowding
-                //         next_matrix_map[row][col] = 0;
-                //     }
-                // } else { // Cell is currently dead
-                //     if (num_neighbors == 3) {
-                //         cellColor = sf::Color(255, 255, 255, 255); // Birth
-                //         next_matrix_map[row][col] = 1;
-                //     } else {
-                //         cellColor = sf::Color(0, 0, 0, 255); // Remain dead
-                //         next_matrix_map[row][col] = 0;
-                //     }
+                if (matrix_map[row][col] == 1) {
+                    cellColor = sf::Color(255, 255, 255, 255);
+                }
+                // } else {
+                //     float density = CalculateDensity(matrix_map, col, row);
+
+                //     int transparency = std::min(static_cast<int>(15 + density), 255);
+                //     cellColor = sf::Color(0, 0, 255, transparency);
                 // }
-                
-                float density = CalculateDensity(matrix_map, col, row);
-
-                int transparency = std::min(static_cast<int>(15 + density), 255);
-                cellColor = sf::Color(0, 0, 255, transparency);
-                
 
                 // Set cell color
                 cell.setFillColor(cellColor);
 
+                cell.setOutlineThickness(1);
+                cell.setOutlineColor(sf::Color(255,255,255,25));
+
                 // Draw the cell on the window
                 window.draw(cell);
+            
+
             }
         }
 
