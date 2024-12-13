@@ -627,6 +627,7 @@ int main() {
 
                 if (matrix_map[row][col] == 1) {
                     cellColor = sf::Color(255, 255, 255, 255);
+                
                 } else {
                     float density = CalculateDensity(matrix_map, col, row);
 
@@ -755,8 +756,8 @@ int main() {
         
 
 
-        // // Make each cell with sand fall one row
-        // matrix_map = ones_fall(matrix_map);
+        // Make each cell with sand fall one row
+        matrix_map = ones_fall(matrix_map);
 
         // Pause for animation
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
