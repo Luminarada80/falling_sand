@@ -13,6 +13,9 @@
 #include <cstdlib>
 #include <random>
 #include <set>
+#include "CommonFunctions.h"
+#include "Ant.h"
+#include "Generator.h"
 
 
 using namespace std;
@@ -56,406 +59,194 @@ vector<vector<int>> ones_fall(vector<vector<int>> matrix_map) {
     return matrix_map;
 };
 
-int FindDirectNeighbors(const vector<vector<int>>& matrix_map, int sample_point_x, int sample_point_y) {
-    std::vector<std::pair<int, int>> neighbors;
-    int num_neighbors = 0;
+// int FindDirectNeighbors(const vector<vector<int>>& matrix_map, int sample_point_x, int sample_point_y) {
+//     std::vector<std::pair<int, int>> neighbors;
+//     int num_neighbors = 0;
 
-    int num_rows = matrix_map.size();
-    int num_cols = matrix_map[0].size();
+//     int num_rows = matrix_map.size();
+//     int num_cols = matrix_map[0].size();
 
-    // Offsets for neighbors
-    int offsets[8][2] = {
-        {-1, -1}, {-1, 0}, {-1, +1}, // Top-left, Top, Top-right
-        { 0, -1},          { 0, +1}, // Left,        , Right
-        {+1, -1}, {+1, 0}, {+1, +1}  // Bottom-left, Bottom, Bottom-right
-    };
+//     // Offsets for neighbors
+//     int offsets[8][2] = {
+//         {-1, -1}, {-1, 0}, {-1, +1}, // Top-left, Top, Top-right
+//         { 0, -1},          { 0, +1}, // Left,        , Right
+//         {+1, -1}, {+1, 0}, {+1, +1}  // Bottom-left, Bottom, Bottom-right
+//     };
 
-    // Check all neighbors
-    for (const auto& offset : offsets) {
-        int neighbor_x = sample_point_x + offset[0];
-        int neighbor_y = sample_point_y + offset[1];
+//     // Check all neighbors
+//     for (const auto& offset : offsets) {
+//         int neighbor_x = sample_point_x + offset[0];
+//         int neighbor_y = sample_point_y + offset[1];
 
-        // Check if neighbor is within bounds
-        if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
-            // Add neighbor coordinates to the list
-            neighbors.emplace_back(neighbor_x, neighbor_y);
-            if (matrix_map[neighbor_y][neighbor_x] == 1) {
-                num_neighbors++;
-            }
-        }
-    }
+//         // Check if neighbor is within bounds
+//         if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
+//             // Add neighbor coordinates to the list
+//             neighbors.emplace_back(neighbor_x, neighbor_y);
+//             if (matrix_map[neighbor_y][neighbor_x] == 1) {
+//                 num_neighbors++;
+//             }
+//         }
+//     }
 
-    return num_neighbors;
-}
+//     return num_neighbors;
+// }
 
-float CalculateDistance(int sample_point_x, int sample_point_y, int cell_x, int cell_y)
-{
-    float dx = cell_x - sample_point_x;
-    float dy = cell_y - sample_point_y;
-    float dst = sqrt(dx * dx + dy * dy);
+// float CalculateDistance(int sample_point_x, int sample_point_y, int cell_x, int cell_y)
+// {
+//     float dx = cell_x - sample_point_x;
+//     float dy = cell_y - sample_point_y;
+//     float dst = sqrt(dx * dx + dy * dy);
 
-    return dst;
-}
+//     return dst;
+// }
 
-static float SmoothingKernel(float radius, float dst)
-{
-    float volume = M_PI * pow(radius, 8) / 4;
-    float value = std::max(0.0f, radius * radius - dst * dst);
-    return value * value * value / volume;
-}
+// static float SmoothingKernel(float radius, float dst)
+// {
+//     float volume = M_PI * pow(radius, 8) / 4;
+//     float value = std::max(0.0f, radius * radius - dst * dst);
+//     return value * value * value / volume;
+// }
 
-float CalculateDensity(const vector<vector<int>>& matrix_map, int col, int row) {
-    float density = 0.0f;
-    const float mass = 1000.0f;
-    int smoothing_radius = 10;
+// float CalculateDensity(const vector<vector<int>>& matrix_map, int col, int row) {
+//     float density = 0.0f;
+//     const float mass = 1000.0f;
+//     int smoothing_radius = 10;
 
-    int num_rows = matrix_map.size();
-    int num_cols = matrix_map[0].size();
+//     int num_rows = matrix_map.size();
+//     int num_cols = matrix_map[0].size();
 
-    float influence = 0.0f;
+//     float influence = 0.0f;
 
-    // Calculate bounds for the smoothing radius
-    int min_row = std::max(0, row - smoothing_radius);
-    int max_row = std::min(num_rows - 1, row + smoothing_radius);
-    int min_col = std::max(0, col - smoothing_radius);
-    int max_col = std::min(num_cols - 1, col + smoothing_radius);
+//     // Calculate bounds for the smoothing radius
+//     int min_row = std::max(0, row - smoothing_radius);
+//     int max_row = std::min(num_rows - 1, row + smoothing_radius);
+//     int min_col = std::max(0, col - smoothing_radius);
+//     int max_col = std::min(num_cols - 1, col + smoothing_radius);
 
-    // Iterate only within the smoothing radius
-    for (int test_row = min_row; test_row <= max_row; test_row++) {
-        for (int test_col = min_col; test_col <= max_col; test_col++) {
-            if (matrix_map[test_row][test_col] == 1) {
-                float distance = CalculateDistance(test_col, test_row, col, row);
+//     // Iterate only within the smoothing radius
+//     for (int test_row = min_row; test_row <= max_row; test_row++) {
+//         for (int test_col = min_col; test_col <= max_col; test_col++) {
+//             if (matrix_map[test_row][test_col] == 1) {
+//                 float distance = CalculateDistance(test_col, test_row, col, row);
 
-                // Only consider points within the smoothing radius
-                if (distance <= smoothing_radius) {
-                    influence += SmoothingKernel(smoothing_radius, distance);
-                }
-            }
-        }
-    }
+//                 // Only consider points within the smoothing radius
+//                 if (distance <= smoothing_radius) {
+//                     influence += SmoothingKernel(smoothing_radius, distance);
+//                 }
+//             }
+//         }
+//     }
 
-    density = mass * influence;
+//     density = mass * influence;
 
-    return density;
-}
+//     return density;
+// }
 
-int random_int_gen(int min, int max) {
-    static std::random_device rd;         // Seed
-    static std::mt19937 gen(rd());        // Random number generator
-    std::uniform_int_distribution<int> dist(min, max); // Distribution
-    return dist(gen);
-}
+// int random_int_gen(int min, int max) {
+//     static std::random_device rd;         // Seed
+//     static std::mt19937 gen(rd());        // Random number generator
+//     std::uniform_int_distribution<int> dist(min, max); // Distribution
+//     return dist(gen);
+// }
 
-class Generator {
-    public:
-        int xpos;
-        int ypos;
-        sf::Color GeneratorColor;
-        int prev_xdir = 0;
-        int prev_ydir = 0;
+// class Generator {
+//     public:
+//         int xpos;
+//         int ypos;
+//         sf::Color GeneratorColor;
+//         int prev_xdir = 0;
+//         int prev_ydir = 0;
 
-        int prev_xpos = 0;
-        int prev_ypos = 0;
-        const vector<vector<int>>& matrix_map;
+//         int prev_xpos = 0;
+//         int prev_ypos = 0;
+//         const vector<vector<int>>& matrix_map;
 
-        int grid_height = matrix_map.size();
-        int grid_width = matrix_map[0].size();   
+//         int grid_height = matrix_map.size();
+//         int grid_width = matrix_map[0].size();   
 
-        int wander_chance = 25;
+//         int wander_chance = 25;
 
-        Generator(const vector<vector<int>>& matrix_map, int x, int y, sf::Color color) : matrix_map(matrix_map), xpos(x), ypos(y), GeneratorColor(color) {}
+//         Generator(const vector<vector<int>>& matrix_map, int x, int y, sf::Color color) : matrix_map(matrix_map), xpos(x), ypos(y), GeneratorColor(color) {}
 
-        // Randomly walk
-        void walk() {
-            int change_dir_roll = random_int_gen(0, 100);
-            if ((change_dir_roll < wander_chance) || (prev_xdir + prev_ydir == 0)){
-                random_walk();
+//         // Randomly walk
+//         void walk() {
+//             int change_dir_roll = random_int_gen(0, 100);
+//             if ((change_dir_roll < wander_chance) || (prev_xdir + prev_ydir == 0)){
+//                 random_walk();
 
-            // Continue in the same direction
-            } else {
-                // Calculate the new position
-                int new_x = xpos + prev_xdir;
-                int new_y = ypos + prev_ydir;
+//             // Continue in the same direction
+//             } else {
+//                 // Calculate the new position
+//                 int new_x = xpos + prev_xdir;
+//                 int new_y = ypos + prev_ydir;
 
-                // Clamp the new position to ensure it stays within bounds
-                xpos = std::clamp(new_x, 0, grid_width - 1);
-                ypos = std::clamp(new_y, 0, grid_height - 1);
-            }
-        }
+//                 // Clamp the new position to ensure it stays within bounds
+//                 xpos = std::clamp(new_x, 0, grid_width - 1);
+//                 ypos = std::clamp(new_y, 0, grid_height - 1);
+//             }
+//         }
 
-        void random_walk() {
-            // Generate relative movement in the range [-1, 1]
-            int x_move = random_int_gen(-1, 1);
-            int y_move = random_int_gen(-1, 1);
+//         void random_walk() {
+//             // Generate relative movement in the range [-1, 1]
+//             int x_move = random_int_gen(-1, 1);
+//             int y_move = random_int_gen(-1, 1);
 
-            // Calculate new position
-            int new_x = xpos + x_move;
-            int new_y = ypos + y_move;
+//             // Calculate new position
+//             int new_x = xpos + x_move;
+//             int new_y = ypos + y_move;
 
-            // Clamp the new position to ensure it stays within bounds
-            xpos = std::clamp(new_x, 0, grid_width - 1);
-            ypos = std::clamp(new_y, 0, grid_height - 1);
+//             // Clamp the new position to ensure it stays within bounds
+//             xpos = std::clamp(new_x, 0, grid_width - 1);
+//             ypos = std::clamp(new_y, 0, grid_height - 1);
 
-            // Update the previous direction
-            prev_xdir = x_move;
-            prev_ydir = y_move;
+//             // Update the previous direction
+//             prev_xdir = x_move;
+//             prev_ydir = y_move;
 
-        }
+//         }
 
-        void create_life(std::vector<std::vector<int>>& matrix_map) {
-            int num_rows = matrix_map.size();
-            int num_cols = matrix_map[0].size();
+//         void create_life(std::vector<std::vector<int>>& matrix_map) {
+//             int num_rows = matrix_map.size();
+//             int num_cols = matrix_map[0].size();
 
-            // Offsets for neighbors
-            int offsets[8][2] = {
-                {-1, -1}, {-1, 0}, {-1, +1}, // Top-left, Top, Top-right
-                { 0, -1},          { 0, +1}, // Left,        , Right
-                {+1, -1}, {+1, 0}, {+1, +1}  // Bottom-left, Bottom, Bottom-right
-            };
+//             // Offsets for neighbors
+//             int offsets[8][2] = {
+//                 {-1, -1}, {-1, 0}, {-1, +1}, // Top-left, Top, Top-right
+//                 { 0, -1},          { 0, +1}, // Left,        , Right
+//                 {+1, -1}, {+1, 0}, {+1, +1}  // Bottom-left, Bottom, Bottom-right
+//             };
 
-            // First loop: Check for neighboring cells with value 2
-            for (const auto& offset : offsets) {
-                int neighbor_x = xpos + offset[0];
-                int neighbor_y = ypos + offset[1];
+//             // First loop: Check for neighboring cells with value 2
+//             for (const auto& offset : offsets) {
+//                 int neighbor_x = xpos + offset[0];
+//                 int neighbor_y = ypos + offset[1];
 
-                // Ensure the neighbor is within bounds
-                if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
-                    if (matrix_map[neighbor_y][neighbor_x] == 2) {
-                        // Abort the function if a neighbor with value 2 is found
-                        return;
-                    }
-                }
-            }
+//                 // Ensure the neighbor is within bounds
+//                 if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
+//                     if (matrix_map[neighbor_y][neighbor_x] == 2) {
+//                         // Abort the function if a neighbor with value 2 is found
+//                         return;
+//                     }
+//                 }
+//             }
 
-            // Second loop: Set neighbors to 1 if they are 0
-            for (const auto& offset : offsets) {
-                int neighbor_x = xpos + offset[0];
-                int neighbor_y = ypos + offset[1];
+//             // Second loop: Set neighbors to 1 if they are 0
+//             for (const auto& offset : offsets) {
+//                 int neighbor_x = xpos + offset[0];
+//                 int neighbor_y = ypos + offset[1];
 
-                // Ensure the neighbor is within bounds
-                if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
-                    if (matrix_map[neighbor_y][neighbor_x] == 0) {
-                        matrix_map[neighbor_y][neighbor_x] = 1;
-                    }
-                }
-            }
-        }
+//                 // Ensure the neighbor is within bounds
+//                 if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
+//                     if (matrix_map[neighbor_y][neighbor_x] == 0) {
+//                         matrix_map[neighbor_y][neighbor_x] = 1;
+//                     }
+//                 }
+//             }
+//         }
 
                 
 
-};
-
-class Ant {
-    public:
-        int xpos;
-        int ypos;
-        sf::Color antColor;
-        int prev_xdir = 0;
-        int prev_ydir = 0;
-
-        int prev_xpos = 0;
-        int prev_ypos = 0;
-        const vector<vector<int>>& matrix_map;
-
-        int grid_height = matrix_map.size();
-        int grid_width = matrix_map[0].size();   
-
-        int wander_chance = 25;
-        int sensing_radius = 5;
-
-        int lifetime = 100;
-        int food = 0;
-
-        Ant(const vector<vector<int>>& matrix_map, int x, int y, sf::Color color) : matrix_map(matrix_map), xpos(x), ypos(y), antColor(color) {}
-
-        bool evaluate_sensed_gradient(){
-            bool sensed_gradient = false;
-
-            float density = CalculateDensity(matrix_map, xpos, ypos);
-
-            if (density > 0.1){
-                sensed_gradient = true;
-            } else {
-                sensed_gradient = false;
-            }
-
-            return sensed_gradient;
-        }
-
-        Ant make_babies(){
-            // Set the position for the baby in the Ant's previous position
-            int baby_xpos = std::clamp(prev_xpos, 1, grid_width - 2);
-            int baby_ypos = std::clamp(prev_ypos, 1, grid_height - 2);
-
-            // Create a new Ant object
-            Ant antObj(matrix_map, baby_xpos, baby_ypos, sf::Color(0, 255, 0, 255));
-
-            // Reset the food
-            food = 0;
-
-            return antObj;
-        }
-
-        void walk()
-        {   
-            if (FindDirectNeighbors(matrix_map, xpos, ypos) > 0) {
-                walk_to_food();
-
-            } else if (evaluate_sensed_gradient()) {
-                int walk_toward_food_chance = random_int_gen(0, 100);
-                if (walk_toward_food_chance > wander_chance){
-                    walk_toward_gradient();
-                    
-
-                } else {
-                    xpos += prev_xdir;
-                    ypos += prev_ydir;
-                }
-
-            } else {
-                
-                // Randomly walk
-                int change_dir_roll = random_int_gen(0, 100);
-                if ((change_dir_roll < wander_chance) || (prev_xdir + prev_ydir == 0)){
-                    random_walk();
-
-                // Continue in the same direction
-                } else {
-                    // Calculate the new position
-                    int new_x = xpos + prev_xdir;
-                    int new_y = ypos + prev_ydir;
-
-                    // Clamp the new position to ensure it stays within bounds
-                    xpos = std::clamp(new_x, 0, grid_width - 1);
-                    ypos = std::clamp(new_y, 0, grid_height - 1);
-                }
-            }
-        }
-
-        void walk_to_food() {
-            std::vector<std::pair<int, int>> neighbors;
-            int num_rows = matrix_map.size();
-            int num_cols = matrix_map[0].size();
-
-            // Offsets for neighbors
-            int offsets[8][2] = {
-                {-1, -1}, {-1, 0}, {-1, +1}, // Top-left, Top, Top-right
-                { 0, -1},          { 0, +1}, // Left,        , Right
-                {+1, -1}, {+1, 0}, {+1, +1}  // Bottom-left, Bottom, Bottom-right
-            };
-
-            for (const auto& offset : offsets) {
-                int neighbor_x = xpos + offset[0];
-                int neighbor_y = ypos + offset[1];
-
-                if (neighbor_x >= 0 && neighbor_x < num_cols && neighbor_y >= 0 && neighbor_y < num_rows) {
-                    if (matrix_map[neighbor_y][neighbor_x] == 1) {
-                        // Avoid moving back to the previous position
-                        if (neighbor_x == prev_xpos && neighbor_y == prev_ypos) {
-                            continue;
-                        }
-
-                        // Move to the food
-                        prev_xpos = xpos;
-                        prev_ypos = ypos;
-                        xpos = neighbor_x;
-                        ypos = neighbor_y;
-
-                        // Clamp the position
-                        xpos = std::clamp(xpos, 0, grid_width - 1);
-                        ypos = std::clamp(ypos, 0, grid_height - 1);
-
-                        prev_xdir = offset[0];
-                        prev_ydir = offset[1];
-                        return;
-                    }
-                }
-            }
-        }
-
-        void random_walk() {
-            // Generate relative movement in the range [-1, 1]
-            int x_move = random_int_gen(-1, 1);
-            int y_move = random_int_gen(-1, 1);
-
-            // Calculate new position
-            int new_x = xpos + x_move;
-            int new_y = ypos + y_move;
-
-            // Clamp the new position to ensure it stays within bounds
-            xpos = std::clamp(new_x, 0, grid_width - 1);
-            ypos = std::clamp(new_y, 0, grid_height - 1);
-
-            // Update the previous direction
-            prev_xdir = x_move;
-            prev_ydir = y_move;
-
-        }
-
-        void walk_toward_gradient() {
-            float max_density = -1.0f;
-            int best_x = xpos;
-            int best_y = ypos;
-
-            // Iterate over all positions within the sensing radius
-            for (int dx = -sensing_radius; dx <= sensing_radius; ++dx) {
-                for (int dy = -sensing_radius; dy <= sensing_radius; ++dy) {
-                    int new_x = xpos + dx;
-                    int new_y = ypos + dy;
-
-                    // Skip the current position and ensure bounds
-                    if ((dx != 0 || dy != 0) && new_x >= 0 && new_x < grid_width && new_y >= 0 && new_y < grid_height) {
-                        // Avoid moving back to the previous position
-                        if (new_x == prev_xpos && new_y == prev_ypos) {
-                            continue;
-                        }
-
-                        if (matrix_map[new_y][new_x] == 1){
-                            best_x = new_x;
-                            best_y = new_y;
-                        } else {
-                            // Calculate the density for this position
-                            float density = CalculateDensity(matrix_map, new_x, new_y);
-
-
-
-                            // Keep track of the position with the highest density
-                            if (density > max_density) {
-                                max_density = density;
-                                best_x = new_x;
-                                best_y = new_y;
-
-                            // Randomly choose between equal values
-                            } else if (density == max_density) {
-                                if (random_int_gen(0, 1) == 1) {
-                                    best_x = new_x;
-                                    best_y = new_y;
-                                }
-                            }
-                        }
-
-                        
-                    }
-                }
-            }
-
-            // Move to the position with the highest density
-            prev_xpos = xpos;
-            prev_ypos = ypos;
-            xpos = best_x;
-            ypos = best_y;
-
-            // Clamp the position
-            xpos = std::clamp(xpos, 1, grid_width - 2);
-            ypos = std::clamp(ypos, 1, grid_height - 2);
-
-            // Update the previous direction
-            prev_xdir = best_x - xpos;
-            prev_ydir = best_y - ypos;
-
-        }
-
-};
+// };
 
 std::vector<std::vector<int>> createMatrix(int rows, int cols) {
     // Initialize a matrix of size rows x cols with all values set to 0
@@ -637,7 +428,7 @@ int main() {
 
                 for (Ant& ant : ant_list) {
                     if ((col == ant.xpos) && (row == ant.ypos)){
-                        cellColor = ant.antColor;
+                        cellColor = ant.animalColor;
                         if (matrix_map[row][col] == 1){
                             ant.food += 1;
                         }
@@ -702,7 +493,7 @@ int main() {
                 }
 
                 // Check if the ant has enough food to create a new ant
-                if (ant.food >= 25) {
+                if (ant.food >= 20) {
                     // Find a free position for the baby ant
                     std::pair<int, int> baby_position;
                     bool position_found = false;

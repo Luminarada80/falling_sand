@@ -1,9 +1,15 @@
 # Installation and running
 
-Make sure to have VcXserv Windows X Server if running on WSL
+1. Make sure to have VcXserv Windows X Server if running on WSL
 
-Install cmake from `apt install cmake`
+2. Install cmake from `apt install cmake`
 
-In the main directory, create a `build` directory and navigate into it.
+3. Run `cmake .` 
 
-Run `cmake build`
+4. Install SFML with `sudo apt install libsfml-dev`
+
+5. Build the project using `make`
+
+Run the program using `./sand`
+
+> If the window is not opening, try using `LIBGL_ALWAYS_SOFTWARE=1 ./sand`

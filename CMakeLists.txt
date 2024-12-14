@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Add the executable target
-add_executable(sand falling_sand.cpp)
+add_executable(sand falling_sand.cpp Ant.cpp Generator.cpp Animal.cpp CommonFunctions.cpp)
 
 # Link SFML libraries to the executable
 target_link_libraries(sand sfml-graphics sfml-window sfml-system)
