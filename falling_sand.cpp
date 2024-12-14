@@ -105,13 +105,15 @@ std::list<Generator> create_generators(int num_generators, vector<vector<int>>& 
 }
 
 int main() {
+    // ================ SETTINGS =================
     // User settings
-    bool make_ones_fall = false;
-    bool show_density = false;
-    bool conways_game_of_life = false;
-    bool make_ants = false;
-    bool make_generators = false;
-    bool show_objects = true;
+    bool gamePause = false;             // Space
+    bool make_ones_fall = false;        // Key_1
+    bool conways_game_of_life = false;  // Key_2
+    bool show_density = false;          // Key 3
+    bool make_ants = false;             // Key 4
+    bool make_generators = false;       // Key 5
+    bool show_objects = true;           // Key 6
 
     // Initialize the matrix
     vector<vector<int>> matrix_map = createMatrix(50, 50);
@@ -122,8 +124,6 @@ int main() {
     // Matrix dimensions
     const int cellSize = 25; // Size of each cell in pixels
 
-    int previous_pop = 0;
-
     // Create the SFML window
     sf::RenderWindow window(sf::VideoMode(num_cols * cellSize, num_rows * cellSize), "Falling Sand");
 
@@ -131,16 +131,9 @@ int main() {
     sf::Color cellColor = sf::Color(0, 255, 255, 255);
     sf::Color backgroundColor = sf::Color(0,0,0,255);
 
-    // Initialize a grid to store the last interaction time for each cell
-    std::vector<std::vector<std::chrono::time_point<std::chrono::steady_clock>>> lastInteractionTime(
-        num_rows, std::vector<std::chrono::time_point<std::chrono::steady_clock>>(num_cols, std::chrono::steady_clock::now())
-    );
-    bool gamePause = false;
-
-    // Handle creating the animal lists
+    // Handle creating the Ants and Generators lists
     int num_ants = 10;
     int num_generators = 5;
-
     std::list<Ant> ant_list = create_ants(0, matrix_map, num_cols, num_rows);
     std::list<Generator> generator_list = create_generators(0, matrix_map, num_cols, num_rows);
 
@@ -151,6 +144,8 @@ int main() {
         generator_list = create_generators(num_generators, matrix_map, num_cols, num_rows);
     }
 
+
+    // ============= MAIN GAME LOOP =================
     while (window.isOpen()) {
         
         // Handle events
@@ -161,7 +156,7 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
             
-            // Make ones fall if hit 1
+            // Pause the simulation if hit space
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
                 gamePause = !gamePause;
             }
@@ -179,6 +174,12 @@ int main() {
             // Show density if hit 3
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num3) {
                 show_density = !show_density;
+
+                // Make sure to show objects if the density is turned off, otherwise nothing
+                // represents 1's on the map.
+                if (show_objects == false && show_density == false){
+                    show_objects = !show_objects;
+                }
             }
 
             // Make ants if hit 4
@@ -202,10 +203,16 @@ int main() {
             // Toggle hiding the objects if hit 6
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num6) {
                 show_objects = !show_objects;
+
+                // Make sure to show density if the objects are not being shown, otherwise nothing 
+                // represents 1's on the map
+                if (show_objects == false && show_density == false){
+                    show_density = !show_density;
+                }
             }
         }
 
-        // Handle mouse click events
+        // Set cell to 1 if left mouse button is clicked
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
             // Get mouse position relative to the window
             sf::Vector2i mousePos = sf::Mouse::getPosition(window);
@@ -216,20 +223,11 @@ int main() {
 
             // Check bounds and update the grid
             if (row >= 0 && row < num_rows && col >= 0 && col < num_cols) {
-                // Get the current time
-                auto now = std::chrono::steady_clock::now();
-
-                // Check if the lockout period has passed
-                auto lockoutDuration = std::chrono::milliseconds(500); // 500ms lockout
-                if (now - lastInteractionTime[row][col] >= lockoutDuration) {
-                    // Toggle the cell's state
-                    matrix_map[row][col] = 1;
-
-                    // Update the last interaction time for the cell
-                    lastInteractionTime[row][col] = now;
-                }
+                matrix_map[row][col] = 1;
             }
 
+        
+        // Set cell to 0 if right mouse button is clicked
         } else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
             // Get mouse position relative to the window
             sf::Vector2i mousePos = sf::Mouse::getPosition(window);
@@ -240,18 +238,7 @@ int main() {
 
             // Check bounds and update the grid
             if (row >= 0 && row < num_rows && col >= 0 && col < num_cols) {
-                // Get the current time
-                auto now = std::chrono::steady_clock::now();
-
-                // Check if the lockout period has passed
-                auto lockoutDuration = std::chrono::milliseconds(500); // 500ms lockout
-                if (now - lastInteractionTime[row][col] >= lockoutDuration) {
-                    // Toggle the cell's state
-                    matrix_map[row][col] = 0;
-
-                    // Update the last interaction time for the cell
-                    lastInteractionTime[row][col] = now;
-                }
+                matrix_map[row][col] = 0;
             }
         }
 
@@ -259,21 +246,24 @@ int main() {
         window.clear(backgroundColor);
         std::vector<std::vector<int>> next_matrix_map = matrix_map; // Temporary grid for next state
 
-        // Draw and update the matrix
+        // Draw and update each cell of the matrix
         for (int row = 0; row < num_rows; row++) {
             for (int col = 0; col < num_cols; col++) {
+
+                // Set up the cell shape as a rectangle with size cellSize * cellSize
                 sf::RectangleShape cell(sf::Vector2f(cellSize, cellSize));
+
+                // Set the cell position based on the matrix position and cellSize
                 cell.setPosition(col * cellSize, row * cellSize);
 
-                sf::Color cellColor = sf::Color::Black; // Default: Dead cell (black)
+                // Default: Dead cell (black)
+                sf::Color cellColor = sf::Color::Black; 
 
-                int num_neighbors = 0;
-                int max_distance = 1; // Typical Game of Life uses direct neighbors only
-
+                // =========== CONWAYS GAME OF LIFE CODE ==============
                 if (conways_game_of_life) {
                     if (!gamePause) { 
                         // Count neighbors
-                        num_neighbors = FindDirectNeighbors(matrix_map, col, row);
+                        int num_neighbors = FindDirectNeighbors(matrix_map, col, row);
 
                         // Conway's game of life
                         // Determine cell state based on number of neighbors
@@ -295,15 +285,22 @@ int main() {
                     }
                 }
 
-
+                // Handles setting the cell to 1 (overwritten by other code)
                 if (matrix_map[row][col] == 1 && show_objects) {
                     cellColor = sf::Color(255, 255, 255, 255);
                 
+                // Show the density of dead cells
                 } else if (show_density) {
                     float density = CalculateDensity(matrix_map, col, row);
 
-                    int transparency = std::min(static_cast<int>(15 + density), 255);
-                    cellColor = sf::Color(0, 0, 255, transparency);
+                    // Clamp transparency between 15 and 255
+                    int transparency = std::min(static_cast<int>(density), 255);
+
+                    // Clamp green component between 0 and 165
+                    int green_component = std::max(0, static_cast<int>(130 - density));
+
+                    // Set the color from orange (255, 165, 0) to red (255, 0, 0)
+                    cellColor = sf::Color(255, green_component, 0, transparency);
                 }
 
                 // Iterate over the list of ants using an iterator
@@ -326,7 +323,6 @@ int main() {
                 for (Generator& gen : generator_list) {
                     if ((col == gen.xpos) && (row == gen.ypos)){
                         cellColor = gen.GeneratorColor;
-                        gen.create_life(matrix_map);
                     } 
                 }
 
@@ -382,7 +378,7 @@ int main() {
                         }
 
                         // Reproduction logic
-                        if (ant.food >= 25) {
+                        if (ant.food >= 35) {
                             std::pair<int, int> baby_position;
                             bool position_found = false;
                             for (int dx = -1; dx <= 1 && !position_found; ++dx) {
@@ -413,11 +409,6 @@ int main() {
                             ++it;
                         }
                     }
-
-                        // if (previous_pop != ant_list.size()) {
-                        //     // cout << "Population: " << ant_list.size() << endl;
-                        //     previous_pop = ant_list.size();
-                        // }
                 }
             }
 
@@ -432,12 +423,17 @@ int main() {
 
                         gen.walk();
 
+                        gen.prev_xpos = gen.xpos;
+                        gen.prev_ypos = gen.ypos;
+
                         if (occupied_positions.find({gen.xpos, gen.ypos}) != occupied_positions.end()) {
                             gen.xpos = gen.prev_xpos;
                             gen.ypos = gen.prev_ypos;
                         } else {
                             occupied_positions.insert({gen.xpos, gen.ypos});
                         }
+
+                        gen.create_life(matrix_map, occupied_positions);
 
                         ++it;
                     }

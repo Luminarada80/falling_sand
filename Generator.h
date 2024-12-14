@@ -2,6 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <set>
 
 using std::vector;
 
@@ -22,13 +23,15 @@ class Generator {
 
         int wander_chance = 25;
 
+        int stop_generating = 0;
+
         Generator(const vector<vector<int>>& matrix_map, int x, int y, sf::Color color) 
         : matrix_map(matrix_map), xpos(x), ypos(y), GeneratorColor(color),
         grid_height(matrix_map.size()), grid_width(matrix_map[0].size()) {}
 
         void walk();
         void random_walk();
-        void create_life(std::vector<std::vector<int>>& matrix_map);
+        void create_life(std::vector<std::vector<int>>& matrix_map, std::set<std::pair<int, int>>& occupied_positions);
         
 };
 
