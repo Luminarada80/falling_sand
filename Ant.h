@@ -15,7 +15,7 @@ class Ant : public Animal {
         // Constructor for Ant, forwarding parameters to Animal's constructor
         Ant(const std::vector<std::vector<int>>& matrix_map, int x, int y, sf::Color color)
             : Animal(matrix_map, x, y, color) {
-            lifetime = 200; // Set lifetime for Ant
+            lifetime = 150; // Set lifetime for Ant
             }
 
         Ant make_babies();

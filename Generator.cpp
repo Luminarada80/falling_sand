@@ -75,7 +75,7 @@ void Generator::create_life(std::vector<std::vector<int>>& matrix_map, std::set<
 
     // If occupied, set stop_generating to 10 frames and return
     if (is_occupied) {
-        stop_generating = 10;
+        stop_generating = 50;
         return;
     }
 

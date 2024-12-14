@@ -133,7 +133,7 @@ int main() {
 
     // Handle creating the Ants and Generators lists
     int num_ants = 10;
-    int num_generators = 5;
+    int num_generators = 10;
     std::list<Ant> ant_list = create_ants(0, matrix_map, num_cols, num_rows);
     std::list<Generator> generator_list = create_generators(0, matrix_map, num_cols, num_rows);
 
@@ -300,7 +300,7 @@ int main() {
                     int green_component = std::max(0, static_cast<int>(130 - density));
 
                     // Set the color from orange (255, 165, 0) to red (255, 0, 0)
-                    cellColor = sf::Color(255, green_component, 0, transparency);
+                    cellColor = sf::Color(0, 0, 255, transparency);
                 }
 
                 // Iterate over the list of ants using an iterator
@@ -378,7 +378,7 @@ int main() {
                         }
 
                         // Reproduction logic
-                        if (ant.food >= 35) {
+                        if (ant.food >= 50) {
                             std::pair<int, int> baby_position;
                             bool position_found = false;
                             for (int dx = -1; dx <= 1 && !position_found; ++dx) {
