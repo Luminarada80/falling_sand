@@ -66,10 +66,50 @@ std::vector<std::vector<int>> createMatrix(int rows, int cols) {
     return matrix;
 }
 
+std::list<Ant> create_ants(int num_ants, vector<vector<int>>& matrix_map, int num_cols, int num_rows){
+    // Create multiple ants
+    std::list<Ant> ant_list;
+
+    for (int i = 0; i < num_ants; i++) { // Correct initialization of the loop
+        int randx = random_int_gen(0, num_cols - 1); // Ensure the range is valid
+        int randy = random_int_gen(0, num_rows - 1);
+
+        // Create a new Ant object
+        Ant antObj(matrix_map, randx, randy, sf::Color(0, 255, 0, 255));
+
+        // Add the Ant object to the list
+        ant_list.push_back(antObj);
+    }
+    return ant_list;
+}
+
+std::list<Generator> create_generators(int num_generators, vector<vector<int>>& matrix_map, int num_cols, int num_rows){
+    // Create multiple Generators
+    std::list<Generator> generator_list;
+
+    for (int i = 0; i < num_generators; i++) { // Correct initialization of the loop
+        int randx = random_int_gen(0, num_cols - 1); // Ensure the range is valid
+        int randy = random_int_gen(0, num_rows - 1);
+
+        // Create a new Ant object
+        Generator genObj(matrix_map, randx, randy, sf::Color(255, 0, 255, 255));
+
+        // Add the Ant object to the list
+        generator_list.push_back(genObj);
+    }
+
+    return generator_list;
+}
+
 int main() {
+    // User settings
+    bool make_ones_fall = false;
+    bool create_animals = false;
+    bool show_density = false;
+    bool conways_game_of_life = false;
 
     // Initialize the matrix
-    vector<vector<int>> matrix_map = createMatrix(75, 150);
+    vector<vector<int>> matrix_map = createMatrix(50, 50);
 
     int num_rows = matrix_map.size();
     int num_cols = matrix_map[0].size();
@@ -92,32 +132,16 @@ int main() {
     );
     bool gamePause = false;
 
-    // Create multiple ants
-    std::list<Ant> ant_list;
+    // Handle creating the animal lists
+    int num_ants = 10;
+    int num_generators = 5;
 
-    for (int i = 0; i < 10; i++) { // Correct initialization of the loop
-        int randx = random_int_gen(0, num_cols - 1); // Ensure the range is valid
-        int randy = random_int_gen(0, num_rows - 1);
+    std::list<Ant> ant_list = create_ants(0, matrix_map, num_cols, num_rows);
+    std::list<Generator> generator_list = create_generators(0, matrix_map, num_cols, num_rows);
 
-        // Create a new Ant object
-        Ant antObj(matrix_map, randx, randy, sf::Color(0, 255, 0, 255));
-
-        // Add the Ant object to the list
-        ant_list.push_back(antObj);
-    }
-
-    // Create multiple Generators
-    std::list<Generator> generator_list;
-
-    for (int i = 0; i < 5; i++) { // Correct initialization of the loop
-        int randx = random_int_gen(0, num_cols - 1); // Ensure the range is valid
-        int randy = random_int_gen(0, num_rows - 1);
-
-        // Create a new Ant object
-        Generator genObj(matrix_map, randx, randy, sf::Color(255, 0, 255, 255));
-
-        // Add the Ant object to the list
-        generator_list.push_back(genObj);
+    if (create_animals) {
+        ant_list = create_ants(num_ants, matrix_map, num_cols, num_rows);
+        generator_list = create_generators(num_generators, matrix_map, num_cols, num_rows);
     }
 
     while (window.isOpen()) {
@@ -129,10 +153,32 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
             
-            // Toggle gamePause with Space key
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
-                gamePause = !gamePause;
+            // Make ones fall if hit 1
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num1) {
+                make_ones_fall = !make_ones_fall;
             }
+
+            // Show Conways game of life if hit 2
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num2) {
+                conways_game_of_life = !conways_game_of_life;
+            }
+
+            // Show density if hit 3
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num3) {
+                show_density = !show_density;
+            }
+
+            // Make animals if hit 4
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num4) {
+                create_animals = !create_animals;
+                if (create_animals) {
+                    ant_list = create_ants(num_ants, matrix_map, num_cols, num_rows);
+                    generator_list = create_generators(num_generators, matrix_map, num_cols, num_rows);
+                }
+
+            }
+
+            
 
         }
 
@@ -202,27 +248,31 @@ int main() {
                 int num_neighbors = 0;
                 int max_distance = 1; // Typical Game of Life uses direct neighbors only
 
-                if (!gamePause) { 
-                    // Count neighbors
-                    num_neighbors = FindDirectNeighbors(matrix_map, col, row);
+                if (conways_game_of_life) {
+                    if (!gamePause) { 
+                        // Count neighbors
+                        num_neighbors = FindDirectNeighbors(matrix_map, col, row);
 
-                    // Conway's game of life
-                    // Determine cell state based on number of neighbors
-                    if (matrix_map[row][col] == 1) { // Cell is currently alive
-                        if (num_neighbors == 2 || num_neighbors == 3) {
-                            cellColor = sf::Color(255, 255, 255, 255); // Stay alive
-                            next_matrix_map[row][col] = 1;
-                        } else {
-                            cellColor = sf::Color(0, 0, 0, 255); // Death by isolation or overcrowding
-                            next_matrix_map[row][col] = 0;
-                        }
-                    } else { // Cell is currently dead
-                        if (num_neighbors == 3) {
-                            cellColor = sf::Color(255, 255, 255, 255); // Birth
-                            next_matrix_map[row][col] = 1;
-                        } else {
-                            cellColor = sf::Color(0, 0, 0, 255); // Remain dead
-                            next_matrix_map[row][col] = 0;
+                        // Conway's game of life
+                        // Determine cell state based on number of neighbors
+                        
+                        if (matrix_map[row][col] == 1) { // Cell is currently alive
+                            if (num_neighbors == 2 || num_neighbors == 3) {
+                                cellColor = sf::Color(255, 255, 255, 255); // Stay alive
+                                next_matrix_map[row][col] = 1;
+                            } else {
+                                cellColor = sf::Color(0, 0, 0, 255); // Death by isolation or overcrowding
+                                next_matrix_map[row][col] = 0;
+                            }
+                        } else { // Cell is currently dead
+                            if (num_neighbors == 3) {
+                                cellColor = sf::Color(255, 255, 255, 255); // Birth
+                                next_matrix_map[row][col] = 1;
+                            } else {
+                                cellColor = sf::Color(0, 0, 0, 255); // Remain dead
+                                next_matrix_map[row][col] = 0;
+                            }
+                        
                         }
                     }
                 }
@@ -230,7 +280,7 @@ int main() {
                 if (matrix_map[row][col] == 1) {
                     cellColor = sf::Color(255, 255, 255, 255);
                 
-                } else {
+                } else if (show_density) {
                     float density = CalculateDensity(matrix_map, col, row);
 
                     int transparency = std::min(static_cast<int>(15 + density), 255);
@@ -331,6 +381,12 @@ int main() {
                 // Decrease the ant's lifetime
                 ant.lifetime -= 1;
 
+                if (!create_animals){
+                    it = ant_list.erase(it);
+                } else {
+                    ++it;
+                }
+
                 // Remove the ant if its lifetime has expired
                 if (ant.lifetime <= 0) {
                     it = ant_list.erase(it); // Safely remove the ant and update the iterator
@@ -339,26 +395,37 @@ int main() {
                 }
 
                 if (previous_pop != ant_list.size()) {
-                    cout << "Population: " << ant_list.size() << endl;
+                    // cout << "Population: " << ant_list.size() << endl;
                     previous_pop = ant_list.size();
                 }
             
             }
-
-            // Make each generator walk
-            for (Generator& gen : generator_list) {
+            // Iterate over the list of ants using an iterator
+            for (auto it = generator_list.begin(); it != generator_list.end(); ) {
+                Generator& gen = *it;
                 gen.walk();
+
+                if (!create_animals){
+                    it = generator_list.erase(it);
+                } else {
+                    ++it;
+                }
             }
+
+            // Make each cell with sand fall one row
+            if (make_ones_fall) {
+                matrix_map = ones_fall(matrix_map);
+            }
+            
         }
 
         // Display the updated window
         window.display();
 
-        // Make each cell with sand fall one row
-        matrix_map = ones_fall(matrix_map);
+        
 
         // Pause for animation
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
     return 0;
