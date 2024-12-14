@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <SFML/Graphics.hpp>
+#include "CommonFunctions.h"
 
 using std::vector;
 
@@ -31,7 +32,12 @@ class Animal {
         Animal(const vector<vector<int>>& matrix_map, int x, int y, sf::Color color)
         : matrix_map(matrix_map), xpos(x), ypos(y), animalColor(color),
         grid_height(matrix_map.size()),
-        grid_width(matrix_map[0].size()) {}
+        grid_width(matrix_map[0].size()) {
+            prev_xdir = random_int_gen(-1, 1);
+            prev_ydir = random_int_gen(-1, 1);
+            prev_xpos = x;
+            prev_ypos = y;
+        }
 
         void random_walk();
         void walk_toward_gradient();

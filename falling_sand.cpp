@@ -66,20 +66,23 @@ std::vector<std::vector<int>> createMatrix(int rows, int cols) {
     return matrix;
 }
 
-std::list<Ant> create_ants(int num_ants, vector<vector<int>>& matrix_map, int num_cols, int num_rows){
-    // Create multiple ants
+std::list<Ant> create_ants(int num_ants, std::vector<std::vector<int>>& matrix_map, int num_cols, int num_rows) {
     std::list<Ant> ant_list;
+    std::set<std::pair<int, int>> used_positions;
 
-    for (int i = 0; i < num_ants; i++) { // Correct initialization of the loop
-        int randx = random_int_gen(0, num_cols - 1); // Ensure the range is valid
-        int randy = random_int_gen(0, num_rows - 1);
+    for (int i = 0; i < num_ants; i++) {
+        int randx, randy;
+        do {
+            randx = random_int_gen(0, num_cols - 1);
+            randy = random_int_gen(0, num_rows - 1);
+        } while (used_positions.find({randx, randy}) != used_positions.end());
 
-        // Create a new Ant object
+        used_positions.insert({randx, randy});
+
         Ant antObj(matrix_map, randx, randy, sf::Color(0, 255, 0, 255));
-
-        // Add the Ant object to the list
         ant_list.push_back(antObj);
     }
+
     return ant_list;
 }
 
@@ -104,9 +107,11 @@ std::list<Generator> create_generators(int num_generators, vector<vector<int>>& 
 int main() {
     // User settings
     bool make_ones_fall = false;
-    bool create_animals = false;
     bool show_density = false;
     bool conways_game_of_life = false;
+    bool make_ants = false;
+    bool make_generators = false;
+    bool show_objects = true;
 
     // Initialize the matrix
     vector<vector<int>> matrix_map = createMatrix(50, 50);
@@ -115,7 +120,7 @@ int main() {
     int num_cols = matrix_map[0].size();
 
     // Matrix dimensions
-    const int cellSize = 15; // Size of each cell in pixels
+    const int cellSize = 25; // Size of each cell in pixels
 
     int previous_pop = 0;
 
@@ -139,12 +144,15 @@ int main() {
     std::list<Ant> ant_list = create_ants(0, matrix_map, num_cols, num_rows);
     std::list<Generator> generator_list = create_generators(0, matrix_map, num_cols, num_rows);
 
-    if (create_animals) {
+    if (make_ants) {
         ant_list = create_ants(num_ants, matrix_map, num_cols, num_rows);
+    }
+    if (make_generators) {
         generator_list = create_generators(num_generators, matrix_map, num_cols, num_rows);
     }
 
     while (window.isOpen()) {
+        
         // Handle events
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -152,6 +160,11 @@ int main() {
             // Handle closing the window
             if (event.type == sf::Event::Closed)
                 window.close();
+            
+            // Make ones fall if hit 1
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
+                gamePause = !gamePause;
+            }
             
             // Make ones fall if hit 1
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num1) {
@@ -168,20 +181,29 @@ int main() {
                 show_density = !show_density;
             }
 
-            // Make animals if hit 4
+            // Make ants if hit 4
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num4) {
-                create_animals = !create_animals;
-                if (create_animals) {
+                make_ants = !make_ants;
+                if (make_ants) {
                     ant_list = create_ants(num_ants, matrix_map, num_cols, num_rows);
+                }
+
+            }
+
+            // Make generators if hit 5
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num5) {
+                make_generators = !make_generators;
+                if (make_generators) {
                     generator_list = create_generators(num_generators, matrix_map, num_cols, num_rows);
                 }
 
             }
 
-            
-
+            // Toggle hiding the objects if hit 6
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Num6) {
+                show_objects = !show_objects;
+            }
         }
-
 
         // Handle mouse click events
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
@@ -232,7 +254,7 @@ int main() {
                 }
             }
         }
-        
+
         // Clear the window
         window.clear(backgroundColor);
         std::vector<std::vector<int>> next_matrix_map = matrix_map; // Temporary grid for next state
@@ -258,18 +280,14 @@ int main() {
                         
                         if (matrix_map[row][col] == 1) { // Cell is currently alive
                             if (num_neighbors == 2 || num_neighbors == 3) {
-                                cellColor = sf::Color(255, 255, 255, 255); // Stay alive
                                 next_matrix_map[row][col] = 1;
                             } else {
-                                cellColor = sf::Color(0, 0, 0, 255); // Death by isolation or overcrowding
                                 next_matrix_map[row][col] = 0;
                             }
                         } else { // Cell is currently dead
                             if (num_neighbors == 3) {
-                                cellColor = sf::Color(255, 255, 255, 255); // Birth
                                 next_matrix_map[row][col] = 1;
                             } else {
-                                cellColor = sf::Color(0, 0, 0, 255); // Remain dead
                                 next_matrix_map[row][col] = 0;
                             }
                         
@@ -277,7 +295,8 @@ int main() {
                     }
                 }
 
-                if (matrix_map[row][col] == 1) {
+
+                if (matrix_map[row][col] == 1 && show_objects) {
                     cellColor = sf::Color(255, 255, 255, 255);
                 
                 } else if (show_density) {
@@ -287,18 +306,21 @@ int main() {
                     cellColor = sf::Color(0, 0, 255, transparency);
                 }
 
-                for (Ant& ant : ant_list) {
-                    if ((col == ant.xpos) && (row == ant.ypos)){
-                        cellColor = ant.animalColor;
-                        if (matrix_map[row][col] == 1){
-                            ant.food += 1;
-                        }
-                        matrix_map[row][col] == 2;
+                // Iterate over the list of ants using an iterator
+                if (ant_list.size() > 0) {
+                    for (Ant& ant : ant_list) {
+                        if ((col == ant.xpos) && (row == ant.ypos)){
+                            cellColor = ant.animalColor;
+                            if (matrix_map[row][col] == 1){
+                                ant.food += 1;
+                            }
+                            matrix_map[row][col] == 2;
 
 
-                        next_matrix_map[row][col] = 0;
-                        
-                    } 
+                            next_matrix_map[row][col] = 0;
+                            
+                        } 
+                    }
                 }
 
                 for (Generator& gen : generator_list) {
@@ -328,87 +350,97 @@ int main() {
             // Track occupied positions
             std::set<std::pair<int, int>> occupied_positions;
 
-            // Populate initial positions
-            for (const Ant& ant : ant_list) {
-                occupied_positions.insert({ant.xpos, ant.ypos});
-            }
-
             // Iterate over the list of ants using an iterator
-            for (auto it = ant_list.begin(); it != ant_list.end(); ) {
-                Ant& ant = *it;
+            if (ant_list.size() > 0) {
 
-                // Remove the current position from the occupied set
-                occupied_positions.erase({ant.xpos, ant.ypos});
-
-                // Make the ant walk
-                ant.walk();
-
-                // Check if the new position is already occupied
-                if (occupied_positions.find({ant.xpos, ant.ypos}) != occupied_positions.end()) {
-                    // Revert to previous position to prevent overlap
-                    ant.xpos = ant.prev_xpos;
-                    ant.ypos = ant.prev_ypos;
-                } else {
-                    // Update the occupied positions set with the new position
+                // Populate initial positions
+                for (const Ant& ant : ant_list) {
                     occupied_positions.insert({ant.xpos, ant.ypos});
                 }
+                for (const Generator& generator : generator_list) {
+                    occupied_positions.insert({generator.xpos, generator.ypos});
+                }
 
-                // Check if the ant has enough food to create a new ant
-                if (ant.food >= 20) {
-                    // Find a free position for the baby ant
-                    std::pair<int, int> baby_position;
-                    bool position_found = false;
-                    for (int dx = -1; dx <= 1 && !position_found; ++dx) {
-                        for (int dy = -1; dy <= 1 && !position_found; ++dy) {
-                            int new_x = ant.xpos + dx;
-                            int new_y = ant.ypos + dy;
-                            if (occupied_positions.find({new_x, new_y}) == occupied_positions.end()) {
-                                baby_position = {new_x, new_y};
-                                position_found = true;
+                for (auto it = ant_list.begin(); it != ant_list.end(); ) {
+                    Ant& ant = *it;
+
+                    if (!make_ants) {
+                        it = ant_list.erase(it);
+                    } else {
+                        // Remove the current position from the occupied set
+                        occupied_positions.erase({ant.xpos, ant.ypos});
+
+                        // Make the ant walk
+                        ant.walk();
+
+                        // Collision detection
+                        if (occupied_positions.find({ant.xpos, ant.ypos}) != occupied_positions.end()) {
+                            ant.xpos = ant.prev_xpos;
+                            ant.ypos = ant.prev_ypos;
+                        } else {
+                            occupied_positions.insert({ant.xpos, ant.ypos});
+                        }
+
+                        // Reproduction logic
+                        if (ant.food >= 25) {
+                            std::pair<int, int> baby_position;
+                            bool position_found = false;
+                            for (int dx = -1; dx <= 1 && !position_found; ++dx) {
+                                for (int dy = -1; dy <= 1 && !position_found; ++dy) {
+                                    int new_x = ant.xpos + dx;
+                                    int new_y = ant.ypos + dy;
+                                    if (occupied_positions.find({new_x, new_y}) == occupied_positions.end()) {
+                                        baby_position = {new_x, new_y};
+                                        position_found = true;
+                                    }
+                                }
                             }
+
+                            if (position_found) {
+                                Ant babyAnt = ant.make_babies();
+                                babyAnt.xpos = baby_position.first;
+                                babyAnt.ypos = baby_position.second;
+                                ant_list.push_back(babyAnt);
+                                occupied_positions.insert(baby_position);
+                            }
+                        }
+
+                        // Decrease lifetime and check removal
+                        ant.lifetime -= 1;
+                        if (ant.lifetime <= 0) {
+                            it = ant_list.erase(it);
+                        } else {
+                            ++it;
                         }
                     }
 
-                    if (position_found) {
-                        Ant babyAnt = ant.make_babies();
-                        babyAnt.xpos = baby_position.first;
-                        babyAnt.ypos = baby_position.second;
-                        ant_list.push_back(babyAnt);
-                        occupied_positions.insert(baby_position);
-                    }
+                        // if (previous_pop != ant_list.size()) {
+                        //     // cout << "Population: " << ant_list.size() << endl;
+                        //     previous_pop = ant_list.size();
+                        // }
                 }
-
-                // Decrease the ant's lifetime
-                ant.lifetime -= 1;
-
-                if (!create_animals){
-                    it = ant_list.erase(it);
-                } else {
-                    ++it;
-                }
-
-                // Remove the ant if its lifetime has expired
-                if (ant.lifetime <= 0) {
-                    it = ant_list.erase(it); // Safely remove the ant and update the iterator
-                } else {
-                    ++it; // Move to the next ant
-                }
-
-                if (previous_pop != ant_list.size()) {
-                    // cout << "Population: " << ant_list.size() << endl;
-                    previous_pop = ant_list.size();
-                }
-            
             }
-            // Iterate over the list of ants using an iterator
-            for (auto it = generator_list.begin(); it != generator_list.end(); ) {
-                Generator& gen = *it;
-                gen.walk();
 
-                if (!create_animals){
-                    it = generator_list.erase(it);
-                } else {
-                    ++it;
+            if (generator_list.size() > 0){
+                for (auto it = generator_list.begin(); it != generator_list.end(); ) {
+                    Generator& gen = *it;
+
+                    if (!make_generators) {
+                        it = generator_list.erase(it);
+                    } else {
+                        occupied_positions.erase({gen.xpos, gen.ypos});
+
+                        gen.walk();
+
+                        if (occupied_positions.find({gen.xpos, gen.ypos}) != occupied_positions.end()) {
+                            gen.xpos = gen.prev_xpos;
+                            gen.ypos = gen.prev_ypos;
+                        } else {
+                            occupied_positions.insert({gen.xpos, gen.ypos});
+                        }
+
+                        ++it;
+                    }
                 }
             }
 
@@ -425,7 +457,7 @@ int main() {
         
 
         // Pause for animation
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
 
     return 0;

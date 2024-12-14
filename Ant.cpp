@@ -50,7 +50,9 @@ void Ant::walk()
             int new_x = xpos + prev_xdir;
             int new_y = ypos + prev_ydir;
 
-            // Clamp the new position to ensure it stays within bounds
+            if (xpos == 0 || xpos == grid_width - 1) prev_xdir = -prev_xdir;
+            if (ypos == 0 || ypos == grid_height - 1) prev_ydir = -prev_ydir;
+
             xpos = std::clamp(new_x, 0, grid_width - 1);
             ypos = std::clamp(new_y, 0, grid_height - 1);
         }
