@@ -1,5 +1,7 @@
 #include "Animal.h"
 #include "CommonFunctions.h"
+#include <random>
+using namespace std;
 
 void Animal::random_walk() {
     // Generate relative movement in the range [-1, 1]
@@ -17,6 +19,9 @@ void Animal::random_walk() {
     // Update the previous direction
     prev_xdir = x_move;
     prev_ydir = y_move;
+
+    // Decrease the animal's food by one
+    food--;
 
 }
 
@@ -38,6 +43,7 @@ void Animal::walk_toward_gradient() {
                     continue;
                 }
 
+                // If the next position is food, that's the best position to move to
                 if (matrix_map[new_y][new_x] == 1){
                     best_x = new_x;
                     best_y = new_y;
@@ -68,6 +74,7 @@ void Animal::walk_toward_gradient() {
     // Move to the position with the highest density
     prev_xpos = xpos;
     prev_ypos = ypos;
+
     xpos = best_x;
     ypos = best_y;
 
@@ -78,6 +85,9 @@ void Animal::walk_toward_gradient() {
     // Update the previous direction
     prev_xdir = best_x - xpos;
     prev_ydir = best_y - ypos;
+
+    // Decrease the animal's food by one
+    food--;
 
 }
 
@@ -116,14 +126,48 @@ void Animal::walk_to_food() {
 
                 prev_xdir = offset[0];
                 prev_ydir = offset[1];
+
+                // Decrease the animal's food by one
+                food--;
+
                 return;
             }
         }
     }
 }
 
-// Method definitions
 bool Animal::evaluate_sensed_gradient() {
     float density = CalculateDensity(matrix_map, xpos, ypos);
     return density > 0.1;
+}
+
+int Animal::mutate(int parent_value, int min_value, int max_value) {
+    static std::random_device rd;          // Seed
+    static std::mt19937 gen(rd());         // Random number generator
+
+    int mutation_roll = random_int_gen(1, 100); // Assuming random_int_gen is using gen internally
+    if (mutation_roll > 90) {
+        std::normal_distribution<float> mutation(parent_value, 0.1 * (max_value - min_value)); // Small variance
+        int mutated_value = static_cast<int>(mutation(gen));
+        return std::clamp(mutated_value, min_value, max_value);
+    } else {
+        return parent_value;
+    }
+}
+
+float Animal::calculate_offspring_similarity(const Animal& child) {
+    int total_attributes = 9; // Total number of attributes to compare
+    int unchanged_attributes = 0;
+
+    if (max_lifetime == child.max_lifetime) unchanged_attributes++;
+    if (group_preference == child.group_preference) unchanged_attributes++;
+    if (movement_chance == child.movement_chance) unchanged_attributes++;
+    if (wander_chance == child.wander_chance) unchanged_attributes++;
+    if (sensing_radius == child.sensing_radius) unchanged_attributes++;
+    if (maturation == child.maturation) unchanged_attributes++;
+    if (food_per_unit_eaten == child.food_per_unit_eaten) unchanged_attributes++;
+    if (spawning_threshold == child.spawning_threshold) unchanged_attributes++;
+    if (spawn_delay == child.spawn_delay) unchanged_attributes++;
+
+    return static_cast<float>(unchanged_attributes) / total_attributes; // Returns a value between 0 and 1
 }

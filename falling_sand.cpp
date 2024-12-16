@@ -79,7 +79,7 @@ std::list<Ant> create_ants(int num_ants, std::vector<std::vector<int>>& matrix_m
 
         used_positions.insert({randx, randy});
 
-        Ant antObj(matrix_map, randx, randy, sf::Color(0, 255, 0, 255));
+        Ant antObj(matrix_map, randx, randy);
         ant_list.push_back(antObj);
     }
 
@@ -309,7 +309,7 @@ int main() {
                         if ((col == ant.xpos) && (row == ant.ypos)){
                             cellColor = ant.animalColor;
                             if (matrix_map[row][col] == 1){
-                                ant.food += 1;
+                                ant.food += ant.food_per_unit_eaten;
                             }
                             matrix_map[row][col] == 2;
 
@@ -338,7 +338,6 @@ int main() {
 
             }
         }
-
 
         matrix_map = next_matrix_map;
 
@@ -378,32 +377,45 @@ int main() {
                         }
 
                         // Reproduction logic
-                        if (ant.food >= 50) {
-                            std::pair<int, int> baby_position;
-                            bool position_found = false;
-                            for (int dx = -1; dx <= 1 && !position_found; ++dx) {
-                                for (int dy = -1; dy <= 1 && !position_found; ++dy) {
-                                    int new_x = ant.xpos + dx;
-                                    int new_y = ant.ypos + dy;
-                                    if (occupied_positions.find({new_x, new_y}) == occupied_positions.end()) {
-                                        baby_position = {new_x, new_y};
-                                        position_found = true;
+                        // cout << "Food = " << ant.food << " Spawning threshold = " << ant.spawning_threshold << endl;
+                        if (ant.food >= ant.spawning_threshold) {
+                            // cout << "I have enough food to make a baby!\n";
+
+                            // If the animal has not created a baby recently, make a baby
+                            if (ant.spawn_delay <= 0){
+                                // cout << "\tI can make a baby!\n";
+                                std::pair<int, int> baby_position;
+                                bool position_found = false;
+                                for (int dx = -1; dx <= 1 && !position_found; ++dx) {
+                                    for (int dy = -1; dy <= 1 && !position_found; ++dy) {
+                                        int new_x = ant.xpos + dx;
+                                        int new_y = ant.ypos + dy;
+                                        if (occupied_positions.find({new_x, new_y}) == occupied_positions.end()) {
+                                            baby_position = {new_x, new_y};
+                                            position_found = true;
+                                        }
                                     }
                                 }
-                            }
 
-                            if (position_found) {
-                                Ant babyAnt = ant.make_babies();
-                                babyAnt.xpos = baby_position.first;
-                                babyAnt.ypos = baby_position.second;
-                                ant_list.push_back(babyAnt);
-                                occupied_positions.insert(baby_position);
+                                if (position_found) {
+                                    Ant babyAnt = ant.make_babies();
+                                    babyAnt.xpos = baby_position.first;
+                                    babyAnt.ypos = baby_position.second;
+                                    ant_list.push_back(babyAnt);
+                                    occupied_positions.insert(baby_position);
+                                    ant.spawn_delay = 250;
+                                }
+
+                            // Otherwise, decrease the spawn delay
+                            } else {
+                                // cout << "\tI need to wait " << ant.spawn_delay << " to reproduce\n";
+                                ant.spawn_delay--;
                             }
                         }
 
                         // Decrease lifetime and check removal
-                        ant.lifetime -= 1;
-                        if (ant.lifetime <= 0) {
+                        ant.remaining_lifetime -= 1;
+                        if (ant.remaining_lifetime <= 0 || ant.food <= 0) {
                             it = ant_list.erase(it);
                         } else {
                             ++it;
