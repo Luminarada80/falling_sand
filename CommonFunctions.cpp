@@ -38,7 +38,7 @@ float CalculateDistance(int sample_point_x, int sample_point_y, int cell_x, int 
 {
     float dx = cell_x - sample_point_x;
     float dy = cell_y - sample_point_y;
-    float dst = sqrt(dx * dx + dy * dy);
+    float dst = dx * dx + dy * dy;
 
     return dst;
 }
@@ -50,10 +50,9 @@ static float SmoothingKernel(float radius, float dst)
     return value * value * value / volume;
 }
 
-float CalculateDensity(const vector<vector<int>>& matrix_map, int col, int row) {
+float CalculateDensity(const vector<vector<int>>& matrix_map, int col, int row, int smoothing_radius) {
     float density = 0.0f;
     const float mass = 1000.0f;
-    int smoothing_radius = 10;
 
     int num_rows = matrix_map.size();
     int num_cols = matrix_map[0].size();

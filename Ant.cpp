@@ -18,15 +18,37 @@ Ant Ant::make_babies(){
     Ant antObj(matrix_map, baby_xpos, baby_ypos);
 
     // Check to see if the child's values will be different than the parents
-    antObj.max_lifetime = mutate(max_lifetime, 100, 500);
+    
     antObj.group_preference = mutate(group_preference, 1, 100);
     antObj.movement_chance = mutate(movement_chance, 1, 100);
     antObj.wander_chance = mutate(wander_chance, 1, 100);
     antObj.sensing_radius = mutate(sensing_radius, 1, 20);
-    antObj.maturation = mutate(maturation, 1, 100);
+    antObj.maturation = mutate(maturation, 50, 500);
     antObj.food_per_unit_eaten = mutate(food_per_unit_eaten, 1, 3);
     antObj.spawning_threshold = mutate(spawning_threshold, 25, 150);
+    antObj.max_lifetime = mutate(max_lifetime, 50, 150) + std::min((antObj.spawning_threshold / 5), 20);
     antObj.spawn_delay = mutate(spawn_delay, 50, 200);
+    antObj.up_preference = mutate(up_preference, 0, 100);
+    antObj.right_preference = mutate(right_preference, 0, 100);
+    antObj.down_preference = mutate(down_preference, 0, 100);
+    antObj.left_preference = mutate(left_preference, 0, 100);
+
+    // Delay the initial spawn by the maturation period
+    antObj.remaining_spawn_delay = antObj.maturation;
+    
+
+    // Set the babies generation up by one
+    antObj.generation = generation + 1;
+
+    // Normalize the preferences to ensure they sum to 100
+    int total_preference = antObj.up_preference + antObj.right_preference + antObj.down_preference + antObj.left_preference;
+
+    if (total_preference > 0) { // Avoid division by zero
+        antObj.up_preference = (antObj.up_preference * 100) / total_preference;
+        antObj.right_preference = (antObj.right_preference * 100) / total_preference;
+        antObj.down_preference = (antObj.down_preference * 100) / total_preference;
+        antObj.left_preference = (antObj.left_preference * 100) / total_preference;
+    }
 
     // cout << "\n\nCreated Baby:\n";
     // cout << "\tmax_lifetime = " << antObj.max_lifetime << endl;
@@ -56,7 +78,7 @@ void Ant::walk()
 {   
     // Set it up so that there is a chance that the animal does not move
     int rand_movement_roll = random_int_gen(1, 100);
-    if (rand_movement_roll > movement_chance) {
+    if (rand_movement_roll < movement_chance) {
 
         if (FindDirectNeighbors(matrix_map, xpos, ypos) > 0) {
             walk_to_food();
@@ -93,8 +115,4 @@ void Ant::walk()
             }
         }
     }
-}
-
-void evolve() {
-    return;
 }

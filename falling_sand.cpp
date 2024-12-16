@@ -16,9 +16,27 @@
 #include "CommonFunctions.h"
 #include "Ant.h"
 #include "Generator.h"
+#include <fstream>
 
 
 using namespace std;
+
+struct AnimalLog {
+    int time_step;
+    int generation;
+    int max_lifetime;
+    int food;
+    int group_preference;
+    int movement_chance;
+    int wander_chance;
+    int sensing_radius;
+    int maturation; 
+    int food_per_unit_eaten;
+    int food_per_baby;
+    int spawning_threshold;
+    int spawn_delay;
+    int population;
+};
 
 void print_map(vector<vector<int>> matrix_map) {
     int num_rows = matrix_map.size();
@@ -104,6 +122,55 @@ std::list<Generator> create_generators(int num_generators, vector<vector<int>>& 
     return generator_list;
 }
 
+void logAnimalAttributes(const Animal& animal, int time_step, std::vector<AnimalLog>& animalLogs, int population) {
+    animalLogs.push_back({
+        time_step,
+        animal.generation,
+        animal.max_lifetime,
+        animal.food,
+        animal.group_preference,
+        animal.movement_chance,
+        animal.wander_chance,
+        animal.sensing_radius,
+        animal.maturation,
+        animal.food_per_unit_eaten,
+        animal.food_per_baby,
+        animal.spawning_threshold,
+        animal.spawn_delay,
+        population
+    });
+};
+
+void saveLogsToCSV(const std::vector<AnimalLog>& animalLogs, const std::string& filename) {
+    std::ofstream file(filename);
+
+    // Write the header
+    file << "time_step,generation,max_lifetime,food,group_preference,movement_chance,"
+        << "wander_chance,sensing_radius,maturation,food_per_unit_eaten,"
+        << "food_per_baby,spawning_threshold,spawn_delay,population\n";
+
+    // Write each log
+    for (const AnimalLog& log : animalLogs) {
+        file << log.time_step << ","
+            << log.generation << ","
+            << log.max_lifetime << ","
+            << log.food << ","
+            << log.group_preference << ","
+            << log.movement_chance << ","
+            << log.wander_chance << ","
+            << log.sensing_radius << ","
+            << log.maturation << ","
+            << log.food_per_unit_eaten << ","
+            << log.food_per_baby << ","
+            << log.spawning_threshold << ","
+            << log.spawn_delay << ","
+            << log.population << "\n";
+    }
+
+    file.close();
+}
+
+
 int main() {
     // ================ SETTINGS =================
     // User settings
@@ -115,14 +182,20 @@ int main() {
     bool make_generators = false;       // Key 5
     bool show_objects = true;           // Key 6
 
+    int num_ants_to_save = 50;
+
+    int matrix_height = 100;
+    int matrix_width = 100;
+    const int cellSize = 10; // Size of each cell in pixels
+
     // Initialize the matrix
-    vector<vector<int>> matrix_map = createMatrix(50, 50);
+    vector<vector<int>> matrix_map = createMatrix(matrix_height, matrix_width);
 
     int num_rows = matrix_map.size();
-    int num_cols = matrix_map[0].size();
+    int num_cols = matrix_map[0].size();    
 
-    // Matrix dimensions
-    const int cellSize = 25; // Size of each cell in pixels
+    int click_delay = 0;
+    int save_attribute_delay = 0;
 
     // Create the SFML window
     sf::RenderWindow window(sf::VideoMode(num_cols * cellSize, num_rows * cellSize), "Falling Sand");
@@ -144,10 +217,12 @@ int main() {
         generator_list = create_generators(num_generators, matrix_map, num_cols, num_rows);
     }
 
+    std::vector<AnimalLog> animalLogs;
+    int time_step = 0;
+
 
     // ============= MAIN GAME LOOP =================
-    while (window.isOpen()) {
-        
+    while (window.isOpen()) {    
         // Handle events
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -226,6 +301,8 @@ int main() {
                 matrix_map[row][col] = 1;
             }
 
+
+
         
         // Set cell to 0 if right mouse button is clicked
         } else if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
@@ -245,6 +322,8 @@ int main() {
         // Clear the window
         window.clear(backgroundColor);
         std::vector<std::vector<int>> next_matrix_map = matrix_map; // Temporary grid for next state
+
+        int num_ants_saved = 0;
 
         // Draw and update each cell of the matrix
         for (int row = 0; row < num_rows; row++) {
@@ -291,7 +370,7 @@ int main() {
                 
                 // Show the density of dead cells
                 } else if (show_density) {
-                    float density = CalculateDensity(matrix_map, col, row);
+                    float density = CalculateDensity(matrix_map, col, row, 20);
 
                     // Clamp transparency between 15 and 255
                     int transparency = std::min(static_cast<int>(density), 255);
@@ -306,6 +385,13 @@ int main() {
                 // Iterate over the list of ants using an iterator
                 if (ant_list.size() > 0) {
                     for (Ant& ant : ant_list) {
+
+                        if (save_attribute_delay == 0 && num_ants_saved < num_ants_to_save){
+                            int population = ant_list.size();
+                            logAnimalAttributes(ant, time_step, animalLogs, population);
+                            num_ants_saved ++;
+                        }
+                        
                         if ((col == ant.xpos) && (row == ant.ypos)){
                             cellColor = ant.animalColor;
                             if (matrix_map[row][col] == 1){
@@ -340,10 +426,10 @@ int main() {
         }
 
         matrix_map = next_matrix_map;
+        // Track occupied positions
+        std::set<std::pair<int, int>> occupied_positions;
 
         if (!gamePause) {
-            // Track occupied positions
-            std::set<std::pair<int, int>> occupied_positions;
 
             // Iterate over the list of ants using an iterator
             if (ant_list.size() > 0) {
@@ -382,7 +468,7 @@ int main() {
                             // cout << "I have enough food to make a baby!\n";
 
                             // If the animal has not created a baby recently, make a baby
-                            if (ant.spawn_delay <= 0){
+                            if (ant.remaining_spawn_delay <= 0){
                                 // cout << "\tI can make a baby!\n";
                                 std::pair<int, int> baby_position;
                                 bool position_found = false;
@@ -403,13 +489,14 @@ int main() {
                                     babyAnt.ypos = baby_position.second;
                                     ant_list.push_back(babyAnt);
                                     occupied_positions.insert(baby_position);
-                                    ant.spawn_delay = 250;
+                                    ant.remaining_spawn_delay = ant.spawn_delay;
+                                    continue;
                                 }
 
                             // Otherwise, decrease the spawn delay
                             } else {
                                 // cout << "\tI need to wait " << ant.spawn_delay << " to reproduce\n";
-                                ant.spawn_delay--;
+                                ant.remaining_spawn_delay--;
                             }
                         }
 
@@ -456,8 +543,71 @@ int main() {
             if (make_ones_fall) {
                 matrix_map = ones_fall(matrix_map);
             }
+
+            if (ant_list.size() > 0){
+                
+                if (save_attribute_delay > 0){
+                    save_attribute_delay--;
+                } else {
+                    cout << "Saving population time " << time_step << " (pop size " << ant_list.size() << ")" << endl;
+                    save_attribute_delay = 75;
+                    time_step++;
+                }
+            }
             
         }
+
+        // Set cell to 1 if left mouse button is clicked
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && click_delay == 0) {
+
+            // Get mouse position relative to the window
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+
+            // Convert to grid coordinates
+            int col = mousePos.x / cellSize;
+            int row = mousePos.y / cellSize;
+
+            for (const Animal& ant : ant_list) {
+                // Convert ant position to screen space (assuming xpos, ypos are in grid coordinates)
+                int ant_x_pixel = ant.xpos * cellSize;
+                int ant_y_pixel = ant.ypos * cellSize;
+
+                // Check if the click falls within the ant's bounding box
+                if (mousePos.x >= ant_x_pixel &&
+                    mousePos.x < ant_x_pixel + cellSize && // Adjust for ant size if needed
+                    mousePos.y >= ant_y_pixel &&
+                    mousePos.y < ant_y_pixel + cellSize) {
+
+                    cout << "\nGeneration = " << ant.generation << endl;
+                    cout << "max_lifetime = " << ant.max_lifetime << endl;
+                    cout << "group_preference = " << ant.group_preference << endl;
+                    cout << "movement_chance = " << ant.movement_chance << endl;
+                    cout << "wander_chance = " << ant.wander_chance << endl;
+                    cout << "sensing_radius = " << ant.sensing_radius << endl;
+                    cout << "maturation = " << ant.maturation << endl;
+                    cout << "food_per_unit_eaten = " << ant.food_per_unit_eaten << endl;
+                    cout << "spawning_threshold = " << ant.spawning_threshold << endl;
+                    cout << "spawn_delay = " << ant.spawn_delay << endl;
+                    cout << "up preference = " << ant.up_preference << endl;
+                    cout << "right preference = " << ant.right_preference << endl;
+                    cout << "down preference = " << ant.down_preference << endl;
+                    cout << "left preference = " << ant.left_preference << endl;
+
+                    click_delay = 15;
+                }
+            }
+        
+        }
+
+        if (click_delay > 0){
+            click_delay--;
+        }
+
+        
+
+        
+        
+
 
         // Display the updated window
         window.display();
@@ -467,7 +617,7 @@ int main() {
         // Pause for animation
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
-
+    saveLogsToCSV(animalLogs, "animal_logs.csv");
     return 0;
 }
 

@@ -38,16 +38,24 @@ class Animal {
         int group_preference = 50;              // How much the animal prefers to stay near other animals of its species
         int movement_chance = 50;               // How likely the animal is to move at any given time
 
+        // MOVEMENT
+        int up_preference = 25;                 // Let animals evolve to prefer to move in certain directions
+        int right_preference = 25;
+        int down_preference = 25;
+        int left_preference = 25;
+
         // GATHERING FOOD
         int wander_chance = 25;                 // The chance to randomly change direction
         int sensing_radius = 10;                // The radius the animal can sense density
 
         // MAKING BABIES
+        int generation = 1;
         int maturation = 50;                    // The percent of the animals life before it creates babies
         int food_per_unit_eaten = 2;            // The amount of food gained per unit eaten
         int food_per_baby = 10;                 // The amount of food it costs to create a baby
         int spawning_threshold = 50;            // The amound of food needed to start making babies
         int spawn_delay = 50;                   // Delay before another baby can be created
+        int remaining_spawn_delay = 0;
 
         // Constructor
         Animal(const vector<vector<int>>& matrix_map, int x, int y)

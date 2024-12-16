@@ -20,7 +20,6 @@ class Ant : public Animal {
 
         Ant make_babies();
         void walk();
-        void evolve();
         
 };
 
